@@ -388,9 +388,9 @@
 <div id="upload-section">
   <div class="upload-zone" id="drop-zone">
     <div class="upload-icon">📦</div>
-    <h2>Importar Planilha do Tracken</h2>
-    <p>Arraste o arquivo CSV/XLSX ou clique para selecionar</p>
-    <p style="margin-top:6px; font-size:12px; color:#555;">Formato esperado: Consulta_Pedido_Resumido</p>
+    <h2>FlexBoys — Monitoramento</h2>
+    <p id="auto-load-status" style="color:var(--text-dim); margin-bottom:8px">Conectando ao Google Sheets...</p>
+    <p style="font-size:12px; color:#555;">Ou importe manualmente o CSV do Tracken</p>
     <button class="btn-upload" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
     <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
   </div>
@@ -505,6 +505,34 @@ function normalizeStatus(row) {
   return hist || 'OUTROS';
 }
 
+// === GOOGLE SHEETS URL (aba Base) ===
+const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
+
+// AUTO-LOAD do Sheets ao abrir a página
+async function autoLoadFromSheets() {
+  const status = document.getElementById('auto-load-status');
+  try {
+    status.textContent = 'Conectando ao Google Sheets...';
+    const resp = await fetch(SHEETS_URL);
+    if (!resp.ok) throw new Error('Erro ' + resp.status);
+    const csvText = await resp.text();
+    const wb = XLSX.read(csvText, { type: 'string' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    if (rawData.length === 0) throw new Error('Planilha vazia');
+    const now = new Date();
+    document.getElementById('snapshot-time').textContent =
+      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
+    populateFilters();
+    renderDashboard();
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  } catch(err) {
+    status.textContent = 'Erro ao carregar automaticamente. Importe o CSV manualmente.';
+    status.style.color = '#f59e0b';
+  }
+}
+
 // FILE UPLOAD
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -517,6 +545,9 @@ dropZone.addEventListener('drop', e => {
   processFile(e.dataTransfer.files[0]);
 });
 fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+// Carrega automaticamente ao abrir
+autoLoadFromSheets();
 
 function processFile(file) {
   const reader = new FileReader();
