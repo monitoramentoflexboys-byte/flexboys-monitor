@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlexBoys — Monitoramento Operacional</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --red: #C8102E;
+    --red-dark: #8B0A1F;
+    --red-glow: rgba(200,16,46,0.4);
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0505 100%);
+    border-bottom: 2px solid var(--red);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(200,16,46,0.2);
+  }
+
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: white;
+  }
+  .logo span { color: var(--red); }
+
+  .header-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .snapshot-badge {
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--bg3);
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .snapshot-badge strong { color: var(--text); }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    margin: 24px;
+    border: 2px dashed var(--red);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: linear-gradient(135deg, rgba(200,16,46,0.03), transparent);
+  }
+  .upload-zone:hover { background: rgba(200,16,46,0.08); border-color: #ff3355; }
+  .upload-zone.dragover { background: rgba(200,16,46,0.15); border-color: #ff3355; }
+
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-zone h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .upload-zone p { color: var(--text-dim); font-size: 14px; }
+  .upload-zone input { display: none; }
+
+  .btn-upload {
+    margin-top: 16px;
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-upload:hover { background: var(--red-dark); }
+
+  /* DASHBOARD */
+  #dashboard { display: none; }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    padding: 0 24px 20px;
+  }
+
+  .kpi {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--kpi-color, var(--red));
+  }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--kpi-color, white);
+  }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 12px;
+    padding: 0 24px 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  select {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: var(--red); }
+
+  .btn-clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-clear:hover { border-color: var(--red); color: var(--text); }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+    padding: 0 24px 24px;
+  }
+
+  /* TABLE */
+  .table-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .table-wrap { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--bg3);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th.num { text-align: right; }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+  .region-row {
+    background: rgba(200,16,46,0.08) !important;
+    cursor: pointer;
+  }
+  .region-row:hover { background: rgba(200,16,46,0.14) !important; }
+
+  .region-row td {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+  }
+
+  .agent-row td {
+    padding: 8px 14px 8px 30px;
+    color: var(--text-dim);
+  }
+  .agent-row td:first-child { color: var(--text); font-size: 12px; }
+
+  td.num { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .badge-gerente {
+    background: rgba(200,16,46,0.2);
+    color: #ff6680;
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  .panel-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .status-list { padding: 12px 0; }
+  .status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px;
+    gap: 12px;
+  }
+  .status-item:hover { background: rgba(255,255,255,0.02); }
+
+  .status-name {
+    font-size: 13px;
+    color: var(--text-dim);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-bar-wrap { flex: 2; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .status-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  .status-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Agentes com mais pedidos */
+  .agents-list { padding: 8px 0; }
+  .agent-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+  }
+  .agent-item:hover { background: rgba(255,255,255,0.02); }
+  .agent-num { font-size: 11px; color: var(--text-dim); min-width: 20px; text-align: center; }
+  .agent-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .agent-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue);
+  }
+  .agent-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .agent-bar { height: 100%; background: var(--blue); border-radius: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-dim);
+  }
+  .empty-state h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; margin-bottom: 8px; color: var(--text); }
+
+  /* Toggle row */
+  .toggle-icon { margin-right: 8px; transition: transform 0.2s; display: inline-block; }
+  .collapsed .toggle-icon { transform: rotate(-90deg); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">FLEX<span>BOYS</span></div>
+  <div class="header-title">Monitoramento Operacional</div>
+  <div class="header-right">
+    <div class="snapshot-badge">Atualizado às <strong id="snapshot-time">—</strong></div>
+  </div>
+</div>
+
+<!-- UPLOAD -->
+<div id="upload-section">
+  <div class="upload-zone" id="drop-zone">
+    <div class="upload-icon">📦</div>
+    <h2>Importar Planilha do Tracken</h2>
+    <p>Arraste o arquivo CSV/XLSX ou clique para selecionar</p>
+    <p style="margin-top:6px; font-size:12px; color:#555;">Formato esperado: Consulta_Pedido_Resumido</p>
+    <button class="btn-upload" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
+    <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="kpi-row">
+    <div class="kpi" style="--kpi-color: #e8e8e8">
+      <div class="kpi-label">Total Entregas</div>
+      <div class="kpi-value" id="kpi-total">0</div>
+    </div>
+    <div class="kpi" style="--kpi-color: var(--red)">
+      <div class="kpi-label">Em Rota</div>
+      <div class="kpi-value" id="kpi-rota">0</div>
+    </div>
+    <div class="kpi" style="--kpi-color: var(--green)">
+      <div class="kpi-label">Entregues</div>
+      <div class="kpi-value" id="kpi-entregue">0</div>
+    </div>
+    <div class="kpi" style="--kpi-color: var(--yellow)">
+      <div class="kpi-label">Ausente</div>
+      <div class="kpi-value" id="kpi-ausente">0</div>
+    </div>
+    <div class="kpi" style="--kpi-color: var(--purple)">
+      <div class="kpi-label">Outros</div>
+      <div class="kpi-value" id="kpi-outros">0</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">Filtros:</span>
+    <select id="filter-gerente" onchange="renderDashboard()">
+      <option value="">Todos os Gerentes</option>
+    </select>
+    <select id="filter-regiao" onchange="renderDashboard()">
+      <option value="">Todas as Regiões</option>
+    </select>
+    <select id="filter-status" onchange="renderDashboard()">
+      <option value="">Todos os Status</option>
+      <option value="EM ROTA">Em Rota</option>
+      <option value="ENTREGUE">Entregue</option>
+      <option value="AUSENTE">Ausente</option>
+    </select>
+    <button class="btn-clear" onclick="clearFilters()">✕ Limpar Filtros</button>
+    <button class="btn-clear" onclick="document.getElementById('file-input').click()">↑ Nova Planilha</button>
+  </div>
+
+  <div class="main-grid">
+    <div class="table-card">
+      <div class="card-header">
+        <div class="card-title">Regiões e Agentes</div>
+        <div style="font-size:12px; color:var(--text-dim)"><span id="count-label">0</span> agentes em rota</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Região / Agente</th>
+              <th>Gerente</th>
+              <th class="num">Em Rota</th>
+              <th class="num">Entregue</th>
+              <th class="num">Ausente</th>
+              <th class="num">Outros</th>
+            </tr>
+          </thead>
+          <tbody id="main-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="panel-card">
+        <div class="card-header"><div class="card-title">Status Geral</div></div>
+        <div class="status-list" id="status-list"></div>
+      </div>
+      <div class="panel-card">
+        <div class="card-header"><div class="card-title">Top Agentes em Aberto</div></div>
+        <div class="agents-list" id="agents-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// === dResponsabilidade embutido ===
+const D_RESPONSABILIDADE = [{"regiao_tracken":"BARUERI_1","regiao":"BARUERI","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"BARUERI_2","regiao":"BARUERI","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"CARAPICUIBA","regiao":"CARAPICUIBA","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"CENTRO","regiao":"CENTRO","macro_regiao":"CENTRO","gerente":"RODRIGO"},{"regiao_tracken":"COTIA","regiao":"COTIA","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"DIADEMA","regiao":"DIADEMA","macro_regiao":"SUL","gerente":"BRUNO"},{"regiao_tracken":"EMBU_1","regiao":"EMBU","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"EMBU_2","regiao":"EMBU","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"GUARULHOS_1","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_2","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_3","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_4","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"LESTE_1","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_2","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_3","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_4","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_5","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"MAUA","regiao":"MAUA","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"NORTE_1","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"NORTE_2","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"NORTE_3","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"OESTE_1","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OESTE_2","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OESTE_3","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_1","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_2","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_3","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"SANTO_ANDRE_1","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SANTO_ANDRE_2","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SANTO_ANDRE_3","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_BERNARDO_1","regiao":"SÃO BERNARDO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_BERNARDO_2","regiao":"SÃO BERNARDO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_CAETANO","regiao":"SÃO CAETANO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SUL_1","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"SUL_2","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"SUL_3","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"TABOAO","regiao":"TABOÃO","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"ITAQUAQUECETUBA","regiao":"LESTE","macro_regiao":"LESTE","gerente":"BRUNO"},{"regiao_tracken":"CAJAMAR","regiao":"CAJAMAR","macro_regiao":"CAJAMAR","gerente":"RODRIGO"}];
+
+const respMap = {};
+D_RESPONSABILIDADE.forEach(r => { respMap[r.regiao_tracken] = r; });
+
+let rawData = [];
+let collapsedRegions = new Set();
+
+// STATUS MAPPING
+function normalizeStatus(row) {
+  const hist = (row['Historico'] || '').trim().toUpperCase();
+  const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
+
+  // Historico é a fonte principal de verdade
+  if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
+  if (hist === 'ENTREGUE') return 'ENTREGUE';
+  if (hist === 'AUSENTE') return 'AUSENTE';
+  if (hist === 'RECUSADO') return 'RECUSADO';
+  if (hist === 'CANCELADO') return 'CANCELADO';
+
+  // Exceção: se Historico não fechou mas Ecommerce diz "A CAMINHO" → ainda está em rota
+  if (ecom.startsWith('A CAMINHO')) return 'EM ROTA';
+
+  // Qualquer outro status do Historico
+  return hist || 'OUTROS';
+}
+
+// FILE UPLOAD
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+function processFile(file) {
+  const reader = new FileReader();
+  const isCSV = file.name.toLowerCase().endsWith('.csv');
+
+  reader.onload = function(e) {
+    try {
+      let data;
+      if (isCSV) {
+        const wb = XLSX.read(e.target.result, { type: 'binary', raw: false });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      } else {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      }
+      rawData = data;
+      const now = new Date();
+      document.getElementById('snapshot-time').textContent =
+        now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
+      populateFilters();
+      renderDashboard();
+      document.getElementById('upload-section').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    } catch(err) {
+      alert('Erro ao ler arquivo: ' + err.message);
+    }
+  };
+
+  if (isCSV) reader.readAsBinaryString(file);
+  else reader.readAsArrayBuffer(file);
+}
+
+function populateFilters() {
+  const gerentes = [...new Set(rawData.map(r => {
+    const reg = (r['Regiao Destino'] || r['Região Destino'] || '').trim().toUpperCase();
+    return respMap[reg]?.gerente || '';
+  }).filter(Boolean))].sort();
+
+  const regioes = [...new Set(rawData.map(r =>
+    (r['Regiao Destino'] || r['Região Destino'] || '').trim().toUpperCase()
+  ).filter(Boolean))].sort();
+
+  const gSel = document.getElementById('filter-gerente');
+  gSel.innerHTML = '<option value="">Todos os Gerentes</option>';
+  gerentes.forEach(g => gSel.innerHTML += `<option value="${g}">${g}</option>`);
+
+  const rSel = document.getElementById('filter-regiao');
+  rSel.innerHTML = '<option value="">Todas as Regiões</option>';
+  regioes.forEach(r => rSel.innerHTML += `<option value="${r}">${r}</option>`);
+}
+
+function getFiltered() {
+  const gFilter = document.getElementById('filter-gerente').value;
+  const rFilter = document.getElementById('filter-regiao').value;
+  const sFilter = document.getElementById('filter-status').value;
+
+  return rawData.filter(row => {
+    const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
+    const resp = respMap[reg];
+    const gerente = resp?.gerente || '';
+    const status = normalizeStatus(row);
+
+    if (gFilter && gerente !== gFilter) return false;
+    if (rFilter && reg !== rFilter) return false;
+    if (sFilter && !status.includes(sFilter)) return false;
+    return true;
+  });
+}
+
+function clearFilters() {
+  document.getElementById('filter-gerente').value = '';
+  document.getElementById('filter-regiao').value = '';
+  document.getElementById('filter-status').value = '';
+  renderDashboard();
+}
+
+const STATUS_COLORS = {
+  'EM ROTA':    '#C8102E',
+  'ENTREGUE':   '#22c55e',
+  'AUSENTE':    '#f59e0b',
+  'RECUSADO':   '#a855f7',
+  'CANCELADO':  '#6b7280',
+  'OUTROS':     '#6b7280',
+};
+
+function renderDashboard() {
+  const data = getFiltered();
+
+  // KPIs
+  const total = data.length;
+  let rota=0, entregue=0, ausente=0, outros=0;
+  const statusCount = {};
+
+  data.forEach(row => {
+    const s = normalizeStatus(row);
+    statusCount[s] = (statusCount[s] || 0) + 1;
+    if (s === 'EM ROTA') rota++;
+    else if (s === 'ENTREGUE') entregue++;
+    else if (s === 'AUSENTE') ausente++;
+    else outros++;
+  });
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-rota').textContent = rota;
+  document.getElementById('kpi-entregue').textContent = entregue;
+  document.getElementById('kpi-ausente').textContent = ausente;
+  document.getElementById('kpi-outros').textContent = outros;
+
+  // STATUS LIST
+  const maxStatus = Math.max(...Object.values(statusCount), 1);
+  const statusSorted = Object.entries(statusCount).sort((a,b) => b[1]-a[1]);
+  document.getElementById('status-list').innerHTML = statusSorted.map(([s, c]) => {
+    const color = STATUS_COLORS[s] || '#6b7280';
+    const pct = Math.round(c / maxStatus * 100);
+    return `<div class="status-item">
+      <div class="status-name">${s}</div>
+      <div class="status-bar-wrap"><div class="status-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="status-count" style="color:${color}">${c}</div>
+    </div>`;
+  }).join('');
+
+  // GROUP BY REGION > AGENT
+  const regions = {};
+  data.forEach(row => {
+    const reg = (row['Regiao Destino'] || row['Região Destino'] || 'DESCONHECIDO').trim().toUpperCase();
+    const agent = (row['Agente'] || 'SEM AGENTE').trim();
+    const status = normalizeStatus(row);
+    if (!regions[reg]) regions[reg] = {};
+    if (!regions[reg][agent]) regions[reg][agent] = {rota:0, entregue:0, ausente:0, outros:0};
+    if (status === 'EM ROTA') regions[reg][agent].rota++;
+    else if (status === 'ENTREGUE') regions[reg][agent].entregue++;
+    else if (status === 'AUSENTE') regions[reg][agent].ausente++;
+    else regions[reg][agent].outros++;
+  });
+
+  // TABLE
+  let agentesEmRota = 0;
+  const tbody = document.getElementById('main-tbody');
+  tbody.innerHTML = '';
+
+  const regionsSorted = Object.keys(regions).sort();
+  regionsSorted.forEach(reg => {
+    const resp = respMap[reg];
+    const gerente = resp?.gerente || '—';
+    const agents = regions[reg];
+    const agentsSorted = Object.keys(agents).sort((a,b) => {
+      const ta = agents[a].rota + agents[a].ausente;
+      const tb = agents[b].rota + agents[b].ausente;
+      return tb - ta;
+    });
+
+    // Region totals
+    let rR=0, eR=0, aR=0, oR=0;
+    agentsSorted.forEach(ag => {
+      rR += agents[ag].rota;
+      eR += agents[ag].entregue;
+      aR += agents[ag].ausente;
+      oR += agents[ag].outros;
+      if (agents[ag].rota > 0) agentesEmRota++;
+    });
+
+    const collapsed = collapsedRegions.has(reg);
+    const regionRow = document.createElement('tr');
+    regionRow.className = 'region-row' + (collapsed ? ' collapsed' : '');
+    regionRow.innerHTML = `
+      <td><span class="toggle-icon">▼</span>${reg}</td>
+      <td><span class="badge badge-gerente">${gerente}</span></td>
+      <td class="num" style="color:var(--red)">${rR || ''}</td>
+      <td class="num" style="color:var(--green)">${eR || ''}</td>
+      <td class="num" style="color:var(--yellow)">${aR || ''}</td>
+      <td class="num" style="color:var(--text-dim)">${oR || ''}</td>
+    `;
+    regionRow.addEventListener('click', () => {
+      if (collapsedRegions.has(reg)) collapsedRegions.delete(reg);
+      else collapsedRegions.add(reg);
+      renderDashboard();
+    });
+    tbody.appendChild(regionRow);
+
+    if (!collapsed) {
+      agentsSorted.forEach(ag => {
+        const s = agents[ag];
+        const agRow = document.createElement('tr');
+        agRow.className = 'agent-row';
+        agRow.innerHTML = `
+          <td>${ag}</td>
+          <td></td>
+          <td class="num" style="color:var(--red)">${s.rota || ''}</td>
+          <td class="num" style="color:var(--green)">${s.entregue || ''}</td>
+          <td class="num" style="color:var(--yellow)">${s.ausente || ''}</td>
+          <td class="num" style="color:var(--text-dim)">${s.outros || ''}</td>
+        `;
+        tbody.appendChild(agRow);
+      });
+    }
+  });
+
+  document.getElementById('count-label').textContent = agentesEmRota;
+
+  // TOP AGENTS (em rota + ausente = em aberto)
+  const agentTotals = {};
+  data.forEach(row => {
+    const ag = (row['Agente'] || 'SEM AGENTE').trim();
+    const s = normalizeStatus(row);
+    if (!agentTotals[ag]) agentTotals[ag] = 0;
+    if (s === 'EM ROTA' || s === 'AUSENTE') agentTotals[ag]++;
+  });
+  const topAgents = Object.entries(agentTotals)
+    .filter(([,v]) => v >= 5)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0, 10);
+
+  const maxAgent = topAgents[0]?.[1] || 1;
+  document.getElementById('agents-list').innerHTML = topAgents.map(([ag, c], i) => {
+    const pct = Math.round(c / maxAgent * 100);
+    const shortName = ag.split(' - ').slice(1).join(' ') || ag;
+    return `<div class="agent-item">
+      <div class="agent-num">${i+1}</div>
+      <div class="agent-name" title="${ag}">${shortName}</div>
+      <div class="agent-bar-wrap"><div class="agent-bar" style="width:${pct}%"></div></div>
+      <div class="agent-count">${c}</div>
+    </div>`;
+  }).join('') || '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Nenhum agente com 5+ pedidos</div>';
+}
+</script>
+</body>
+</html>
