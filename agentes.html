@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FlexBoys — Agentes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --red: #C8102E;
+    --bg: #0d0d0d;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --dim: #777;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 32px;
+  }
+
+  /* HEADER */
+  .header {
+    background: #0a0a0a;
+    border-bottom: 2px solid var(--red);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(200,16,46,0.25);
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+  .logo span { color: var(--red); }
+  .header-time {
+    font-size: 11px;
+    color: var(--dim);
+    text-align: right;
+  }
+  .header-time strong { color: var(--text); display: block; font-size: 13px; }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .status-bar::-webkit-scrollbar { display: none; }
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--dim);
+  }
+  .stat-chip strong {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* SEARCH */
+  .search-section {
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .search-wrap {
+    display: flex;
+    gap: 8px;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--red); }
+  .search-input::placeholder { color: var(--dim); font-size: 14px; }
+  .btn-search {
+    background: var(--red);
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .btn-clear-search {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: none;
+  }
+
+  /* AGENT RESULT CARD */
+  .agent-result {
+    margin: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+  }
+  .agent-result-header {
+    background: rgba(200,16,46,0.12);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .agent-result-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .agent-result-meta {
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .agent-result-meta span { color: var(--text); }
+
+  /* RESUMO */
+  .agent-resumo {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+  .resumo-item {
+    background: var(--bg2);
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .resumo-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+  .resumo-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  /* PEDIDOS LIST */
+  .pedidos-section {
+    padding: 12px 16px 8px;
+    border-top: 1px solid var(--border);
+  }
+  .pedidos-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .pedido-item {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-left: 3px solid var(--border);
+  }
+  .pedido-item.em-rota { border-left-color: var(--red); }
+  .pedido-item.entregue { border-left-color: var(--green); }
+  .pedido-item.ausente { border-left-color: var(--yellow); }
+  .pedido-item.outros { border-left-color: var(--dim); }
+
+  .pedido-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .pedido-remessa {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pedido-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .badge-em-rota { background: rgba(200,16,46,0.2); color: #ff4466; }
+  .badge-entregue { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .badge-ausente { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .badge-outros { background: rgba(107,114,128,0.2); color: #9ca3af; }
+
+  .pedido-dest {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pedido-end {
+    font-size: 11px;
+    color: var(--dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pedido-alert {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--yellow);
+    font-weight: 600;
+  }
+
+  /* GERENTE FILTER */
+  .gerente-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .gerente-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .gerente-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-gerente {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-gerente.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+  }
+  .btn-gerente:active { transform: scale(0.95); }
+
+  /* REGIONS TABLE */
+  .regions-section { padding: 0 16px; }
+
+  .region-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .region-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(200,16,46,0.06);
+    cursor: pointer;
+    user-select: none;
+  }
+  .region-header:active { background: rgba(200,16,46,0.12); }
+
+  .region-left { display: flex; align-items: center; gap: 10px; }
+  .region-toggle { color: var(--dim); font-size: 12px; transition: transform 0.2s; }
+  .region-toggle.open { transform: rotate(90deg); }
+  .region-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-gerente-small {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(200,16,46,0.2);
+    color: #ff6680;
+    letter-spacing: 0.5px;
+  }
+
+  .region-stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .r-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .r-stat .r-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* AGENTS IN REGION */
+  .agents-list {
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .agents-list.open { display: block; }
+
+  .agent-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 10px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .agent-row:last-child { border-bottom: none; }
+  .agent-name-col { font-size: 13px; color: var(--dim); flex: 1; min-width: 0; }
+  .agent-name-col strong { color: var(--text); display: block; font-size: 12px; }
+  .agent-stats {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .a-stat {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: right;
+  }
+  .a-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    color: var(--dim);
+    display: block;
+  }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--dim);
+  }
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-result {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--dim);
+    font-size: 14px;
+  }
+
+  .mt-12 { margin-top: 12px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">FLEX<span>BOYS</span></div>
+  <div class="header-time">
+    <strong id="header-time">—</strong>
+    Atualizado às
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="status-bar">
+  <div class="stat-chip"><div class="dot" style="background:#e8e8e8"></div><span>Total</span><strong id="stat-total">—</strong></div>
+  <div class="stat-chip"><div class="dot" style="background:var(--red)"></div><span>Em Rota</span><strong id="stat-rota" style="color:var(--red)">—</strong></div>
+  <div class="stat-chip"><div class="dot" style="background:var(--green)"></div><span>Entregue</span><strong id="stat-entregue" style="color:var(--green)">—</strong></div>
+  <div class="stat-chip"><div class="dot" style="background:var(--yellow)"></div><span>Ausente</span><strong id="stat-ausente" style="color:var(--yellow)">—</strong></div>
+  <div class="stat-chip"><div class="dot" style="background:var(--dim)"></div><span>Outros</span><strong id="stat-outros" style="color:var(--dim)">—</strong></div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-label">Buscar Agente por Código</div>
+  <div class="search-wrap">
+    <input class="search-input" id="search-input" type="number" placeholder="Ex: 2205" inputmode="numeric"
+      oninput="onSearchInput()" onkeydown="if(event.key==='Enter') buscarAgente()">
+    <button class="btn-search" onclick="buscarAgente()">Buscar</button>
+    <button class="btn-clear-search" id="btn-clear-search" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<!-- AGENT RESULT -->
+<div class="agent-result" id="agent-result">
+  <div class="agent-result-header">
+    <div class="agent-result-name" id="ar-name">—</div>
+    <div class="agent-result-meta">Região: <span id="ar-regiao">—</span> &nbsp;|&nbsp; Gerente: <span id="ar-gerente">—</span></div>
+  </div>
+  <div class="agent-resumo">
+    <div class="resumo-item">
+      <div class="resumo-label">Total</div>
+      <div class="resumo-value" id="ar-total">0</div>
+    </div>
+    <div class="resumo-item">
+      <div class="resumo-label">Em Rota</div>
+      <div class="resumo-value" style="color:var(--red)" id="ar-rota">0</div>
+    </div>
+    <div class="resumo-item">
+      <div class="resumo-label">Entregue</div>
+      <div class="resumo-value" style="color:var(--green)" id="ar-entregue">0</div>
+    </div>
+    <div class="resumo-item">
+      <div class="resumo-label">Ausente</div>
+      <div class="resumo-value" style="color:var(--yellow)" id="ar-ausente">0</div>
+    </div>
+  </div>
+  <div class="pedidos-section">
+    <div class="pedidos-title">Lista de Pedidos</div>
+    <div id="pedidos-list"></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="gerente-section" id="gerente-section" style="display:none">
+  <div class="gerente-label">Filtros</div>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <select id="filter-gerente" onchange="applyFilters()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:6px;font-family:Barlow,sans-serif;font-size:14px;outline:none">
+      <option value="">Todos os Gerentes</option>
+    </select>
+    <select id="filter-regiao" onchange="applyFilters()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:6px;font-family:Barlow,sans-serif;font-size:14px;outline:none">
+      <option value="">Todas as Regiões</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:8px">
+    <select id="filter-status" onchange="applyFilters()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:6px;font-family:Barlow,sans-serif;font-size:14px;outline:none">
+      <option value="">Todos os Status</option>
+      <option value="EM ROTA">Em Rota</option>
+      <option value="ENTREGUE">Entregue</option>
+      <option value="AUSENTE">Ausente</option>
+    </select>
+    <button onclick="clearFilters()" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim);padding:9px 14px;border-radius:6px;font-family:Barlow,sans-serif;font-size:13px;cursor:pointer;white-space:nowrap">✕ Limpar</button>
+  </div>
+</div>
+
+<!-- REGIONS -->
+<div class="mt-12">
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div>Carregando dados...</div>
+  </div>
+  <div class="regions-section" id="regions-section" style="display:none"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
+
+const D_RESP = [
+  {r:"BARUERI_1",g:"DANIEL"},{r:"BARUERI_2",g:"DANIEL"},{r:"CARAPICUIBA",g:"DANIEL"},
+  {r:"CENTRO",g:"RODRIGO"},{r:"COTIA",g:"DANIEL"},{r:"DIADEMA",g:"BRUNO"},
+  {r:"EMBU_1",g:"DANIEL"},{r:"EMBU_2",g:"DANIEL"},{r:"GUARULHOS_1",g:"RODRIGO"},
+  {r:"GUARULHOS_2",g:"RODRIGO"},{r:"GUARULHOS_3",g:"RODRIGO"},{r:"GUARULHOS_4",g:"RODRIGO"},
+  {r:"LESTE_1",g:"BRUNO"},{r:"LESTE_2",g:"BRUNO"},{r:"LESTE_3",g:"BRUNO"},
+  {r:"LESTE_4",g:"BRUNO"},{r:"LESTE_5",g:"BRUNO"},{r:"MAUA",g:"BRUNO"},
+  {r:"NORTE_1",g:"RODRIGO"},{r:"NORTE_2",g:"RODRIGO"},{r:"NORTE_3",g:"RODRIGO"},
+  {r:"OESTE_1",g:"DANIEL"},{r:"OESTE_2",g:"DANIEL"},{r:"OESTE_3",g:"DANIEL"},
+  {r:"OSASCO_1",g:"DANIEL"},{r:"OSASCO_2",g:"DANIEL"},{r:"OSASCO_3",g:"DANIEL"},
+  {r:"SANTO_ANDRE_1",g:"BRUNO"},{r:"SANTO_ANDRE_2",g:"BRUNO"},{r:"SANTO_ANDRE_3",g:"BRUNO"},
+  {r:"SAO_BERNARDO_1",g:"BRUNO"},{r:"SAO_BERNARDO_2",g:"BRUNO"},{r:"SAO_CAETANO",g:"BRUNO"},
+  {r:"SUL_1",g:"DANIEL"},{r:"SUL_2",g:"DANIEL"},{r:"SUL_3",g:"DANIEL"},
+  {r:"TABOAO",g:"DANIEL"},{r:"ITAQUAQUECETUBA",g:"BRUNO"},{r:"CAJAMAR",g:"RODRIGO"}
+];
+
+const respMap = {};
+D_RESP.forEach(d => respMap[d.r] = d.g);
+
+let rawData = [];
+let openRegions = new Set();
+
+function normalizeStatus(row) {
+  const hist = (row['Historico'] || '').trim().toUpperCase();
+  const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
+  if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
+  if (hist === 'ENTREGUE') return 'ENTREGUE';
+  if (hist === 'AUSENTE') return 'AUSENTE';
+  if (hist === 'RECUSADO') return 'RECUSADO';
+  if (hist === 'CANCELADO') return 'CANCELADO';
+  if (ecom.startsWith('A CAMINHO')) return 'EM ROTA';
+  return hist || 'OUTROS';
+}
+
+function isAbertaMercadoLivre(row) {
+  const hist = (row['Historico'] || '').trim().toUpperCase();
+  const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
+  return (hist === 'ENTREGUE' || hist === 'AUSENTE') && ecom.startsWith('A CAMINHO');
+}
+
+function statusClass(s) {
+  if (s === 'EM ROTA') return 'em-rota';
+  if (s === 'ENTREGUE') return 'entregue';
+  if (s === 'AUSENTE') return 'ausente';
+  return 'outros';
+}
+
+function badgeClass(s) {
+  if (s === 'EM ROTA') return 'badge-em-rota';
+  if (s === 'ENTREGUE') return 'badge-entregue';
+  if (s === 'AUSENTE') return 'badge-ausente';
+  return 'badge-outros';
+}
+
+async function loadData() {
+  try {
+    const resp = await fetch(SHEETS_URL);
+    if (!resp.ok) throw new Error('Erro ' + resp.status);
+    const buffer = await resp.arrayBuffer();
+    const wb = XLSX.read(buffer, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    if (rawData.length === 0) throw new Error('Vazia');
+    const now = new Date();
+    document.getElementById('header-time').textContent =
+      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
+    populateFilters();
+    render();
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<div style="color:#f59e0b;font-size:14px">⚠️ Erro ao carregar dados.<br>Verifique a conexão.</div>';
+  }
+}
+
+function populateFilters() {
+  const gerentes = [...new Set(D_RESP.map(d => d.g))].sort();
+  const gSel = document.getElementById('filter-gerente');
+  gSel.innerHTML = '<option value="">Todos os Gerentes</option>';
+  gerentes.forEach(g => gSel.innerHTML += `<option value="${g}">${g}</option>`);
+  const regioes = [...new Set(rawData.map(r => (r['Regiao Destino']||'').trim().toUpperCase()).filter(Boolean))].sort();
+  const rSel = document.getElementById('filter-regiao');
+  rSel.innerHTML = '<option value="">Todas as Regiões</option>';
+  regioes.forEach(r => rSel.innerHTML += `<option value="${r}">${r}</option>`);
+}
+
+function getFiltered() {
+  const gFilter = document.getElementById('filter-gerente').value;
+  const rFilter = document.getElementById('filter-regiao').value;
+  const sFilter = document.getElementById('filter-status').value;
+  return rawData.filter(row => {
+    const reg = (row['Regiao Destino']||'').trim().toUpperCase();
+    const gerente = respMap[reg] || '';
+    const status = normalizeStatus(row);
+    if (gFilter && gerente !== gFilter) return false;
+    if (rFilter && reg !== rFilter) return false;
+    if (sFilter && status !== sFilter) return false;
+    return true;
+  });
+}
+
+function applyFilters() { render(); }
+function clearFilters() {
+  document.getElementById('filter-gerente').value = '';
+  document.getElementById('filter-regiao').value = '';
+  document.getElementById('filter-status').value = '';
+  render();
+}
+
+function render() {
+  const data = getFiltered();
+
+  // Status bar
+  let total=0, rota=0, entregue=0, ausente=0, outros=0;
+  data.forEach(r => {
+    total++;
+    const s = normalizeStatus(r);
+    if(s==='EM ROTA') rota++;
+    else if(s==='ENTREGUE') entregue++;
+    else if(s==='AUSENTE') ausente++;
+    else outros++;
+  });
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-rota').textContent = rota;
+  document.getElementById('stat-entregue').textContent = entregue;
+  document.getElementById('stat-ausente').textContent = ausente;
+  document.getElementById('stat-outros').textContent = outros;
+  document.getElementById('gerente-section').style.display = 'block';
+
+  // Group by region > agent
+  const regions = {};
+  data.forEach(row => {
+    const reg = (row['Regiao Destino'] || 'SEM REGIÃO').trim().toUpperCase();
+    const agent = (row['Agente'] || 'SEM AGENTE').trim();
+    const status = normalizeStatus(row);
+    if (!regions[reg]) regions[reg] = {};
+    if (!regions[reg][agent]) regions[reg][agent] = {rota:0,entregue:0,ausente:0,outros:0};
+    if(status==='EM ROTA') regions[reg][agent].rota++;
+    else if(status==='ENTREGUE') regions[reg][agent].entregue++;
+    else if(status==='AUSENTE') regions[reg][agent].ausente++;
+    else regions[reg][agent].outros++;
+  });
+
+  const sec = document.getElementById('regions-section');
+  sec.innerHTML = '';
+
+  Object.keys(regions).sort().forEach(reg => {
+    const gerente = respMap[reg] || '—';
+    const agents = regions[reg];
+    let rR=0,eR=0,aR=0;
+    Object.values(agents).forEach(a => { rR+=a.rota; eR+=a.entregue; aR+=a.ausente; });
+
+    const isOpen = openRegions.has(reg);
+    const card = document.createElement('div');
+    card.className = 'region-card';
+    card.innerHTML = `
+      <div class="region-header" onclick="toggleRegion('${reg}')">
+        <div class="region-left">
+          <div class="region-toggle ${isOpen?'open':''}">▶</div>
+          <div>
+            <div class="region-name">${reg}</div>
+            <span class="badge-gerente-small">${gerente}</span>
+          </div>
+        </div>
+        <div class="region-stats">
+          ${rR ? `<div class="r-stat"><div class="r-dot" style="background:var(--red)"></div><span style="color:var(--red)">${rR}</span></div>` : ''}
+          ${eR ? `<div class="r-stat"><div class="r-dot" style="background:var(--green)"></div><span style="color:var(--green)">${eR}</span></div>` : ''}
+          ${aR ? `<div class="r-stat"><div class="r-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow)">${aR}</span></div>` : ''}
+        </div>
+      </div>
+      <div class="agents-list ${isOpen?'open':''}" id="agents-${reg}">
+        ${Object.keys(agents).sort((a,b)=>{
+          const ta=agents[a].rota+agents[a].ausente;
+          const tb=agents[b].rota+agents[b].ausente;
+          return tb-ta;
+        }).map(ag => {
+          const s = agents[ag];
+          const codMatch = ag.match(/^(\d+)/);
+          const cod = codMatch ? codMatch[1] : '';
+          const nome = ag.replace(/^\d+\s*-\s*/, '');
+          return `<div class="agent-row">
+            <div class="agent-name-col">
+              <strong>${nome}</strong>
+              ${cod ? `<span style="font-size:11px;color:var(--dim)">Cód: ${cod}</span>` : ''}
+            </div>
+            <div class="agent-stats">
+              <div style="text-align:center">
+                <div class="a-stat" style="color:var(--red)">${s.rota||'—'}</div>
+                <span class="a-label">Rota</span>
+              </div>
+              <div style="text-align:center">
+                <div class="a-stat" style="color:var(--green)">${s.entregue||'—'}</div>
+                <span class="a-label">Entregue</span>
+              </div>
+              <div style="text-align:center">
+                <div class="a-stat" style="color:var(--yellow)">${s.ausente||'—'}</div>
+                <span class="a-label">Ausente</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    sec.appendChild(card);
+  });
+
+  document.getElementById('loading').style.display = 'none';
+  sec.style.display = 'block';
+}
+
+function toggleRegion(reg) {
+  if (openRegions.has(reg)) openRegions.delete(reg);
+  else openRegions.add(reg);
+  render();
+}
+
+function onSearchInput() {
+  const val = document.getElementById('search-input').value;
+  document.getElementById('btn-clear-search').style.display = val ? 'block' : 'none';
+  if (!val) {
+    document.getElementById('agent-result').style.display = 'none';
+    document.getElementById('gerente-section').style.display = 'block';
+    document.getElementById('regions-section').style.display = 'block';
+  }
+}
+
+function buscarAgente() {
+  const cod = document.getElementById('search-input').value.trim();
+  if (!cod) return;
+
+  const agentRows = rawData.filter(r => {
+    const ag = (r['Agente'] || '').trim();
+    const codMatch = ag.match(/^(\d+)/);
+    return codMatch && codMatch[1] === cod;
+  });
+
+  const result = document.getElementById('agent-result');
+
+  if (agentRows.length === 0) {
+    result.style.display = 'block';
+    result.innerHTML = `<div class="no-result">⚠️ Nenhum agente encontrado com código <strong>${cod}</strong></div>`;
+    return;
+  }
+
+  const agentName = (agentRows[0]['Agente'] || '').trim().replace(/^\d+\s*-\s*/, '');
+  const reg = (agentRows[0]['Regiao Destino'] || '').trim().toUpperCase();
+  const gerente = respMap[reg] || '—';
+
+  let rota=0, entregue=0, ausente=0, total=0;
+  agentRows.forEach(r => {
+    total++;
+    const s = normalizeStatus(r);
+    if(s==='EM ROTA') rota++;
+    else if(s==='ENTREGUE') entregue++;
+    else if(s==='AUSENTE') ausente++;
+  });
+
+  const pedidosHTML = agentRows
+    .sort((a,b) => {
+      const order = {'EM ROTA':0,'AUSENTE':1,'ENTREGUE':2};
+      return (order[normalizeStatus(a)]??3) - (order[normalizeStatus(b)]??3);
+    })
+    .map(r => {
+      const s = normalizeStatus(r);
+      const sc = statusClass(s);
+      const bc = badgeClass(s);
+      const dest = r['Destinatario'] || r['Destinatário'] || '—';
+      const end = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '—';
+      const rem = r['Remessa'] || '—';
+      const aberto = isAbertaMercadoLivre(r);
+      return `<div class="pedido-item ${sc}">
+        <div class="pedido-top">
+          <div class="pedido-remessa">${rem}</div>
+          <div class="pedido-badge ${bc}">${s}</div>
+        </div>
+        <div class="pedido-dest">${dest}</div>
+        <div class="pedido-end">${end}</div>
+        ${aberto ? '<div class="pedido-alert">⚠️ Aberto no Mercado Livre</div>' : ''}
+      </div>`;
+    }).join('');
+
+  result.style.display = 'block';
+  result.innerHTML = `
+    <div class="agent-result-header">
+      <div class="agent-result-name">${agentName}</div>
+      <div class="agent-result-meta">Região: <span>${reg}</span> &nbsp;|&nbsp; Gerente: <span>${gerente}</span></div>
+    </div>
+    <div class="agent-resumo">
+      <div class="resumo-item"><div class="resumo-label">Total</div><div class="resumo-value">${total}</div></div>
+      <div class="resumo-item"><div class="resumo-label">Em Rota</div><div class="resumo-value" style="color:var(--red)">${rota}</div></div>
+      <div class="resumo-item"><div class="resumo-label">Entregue</div><div class="resumo-value" style="color:var(--green)">${entregue}</div></div>
+      <div class="resumo-item"><div class="resumo-label">Ausente</div><div class="resumo-value" style="color:var(--yellow)">${ausente}</div></div>
+    </div>
+    <div class="pedidos-section">
+      <div class="pedidos-title">Lista de Pedidos (${total})</div>
+      ${pedidosHTML}
+    </div>
+  `;
+
+  document.getElementById('gerente-section').style.display = 'none';
+  document.getElementById('regions-section').style.display = 'none';
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('btn-clear-search').style.display = 'none';
+  document.getElementById('agent-result').style.display = 'none';
+  document.getElementById('gerente-section').style.display = 'block';
+  document.getElementById('regions-section').style.display = 'block';
+}
+
+loadData();
+</script>
+</body>
+</html>
