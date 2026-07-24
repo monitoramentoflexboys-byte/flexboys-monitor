@@ -778,15 +778,17 @@ function buscarAgente() {
       const bc = badgeClass(s);
       const dest = r['Destinatario'] || r['Destinatário'] || '—';
       const end = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '—';
-      const rem = r['Remessa'] || '—';
+      const pedido = r['NÂº Pedido'] || r['Nº Pedido'] || r['N\u00BA Pedido'] || '—';
+      const cep = r['Cep'] || '—';
       const aberto = isAbertaMercadoLivre(r);
       return `<div class="pedido-item ${sc}">
         <div class="pedido-top">
-          <div class="pedido-remessa">${rem}</div>
+          <div class="pedido-remessa">${pedido}</div>
           <div class="pedido-badge ${bc}">${s}</div>
         </div>
         <div class="pedido-dest">${dest}</div>
         <div class="pedido-end">${end}</div>
+        <div class="pedido-end" style="color:var(--dim);margin-top:2px">CEP: ${cep}</div>
         ${aberto ? '<div class="pedido-alert">⚠️ Aberto no Mercado Livre</div>' : ''}
       </div>`;
     }).join('');
