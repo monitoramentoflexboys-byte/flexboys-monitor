@@ -438,14 +438,7 @@
   </div>
 </div>
 
-<!-- STATUS BAR -->
-<div class="status-bar" id="status-bar">
-  <div class="stat-chip"><div class="dot" style="background:#e8e8e8"></div><span>Total</span><strong id="stat-total">—</strong></div>
-  <div class="stat-chip"><div class="dot" style="background:var(--red)"></div><span>Em Rota</span><strong id="stat-rota" style="color:var(--red)">—</strong></div>
-  <div class="stat-chip"><div class="dot" style="background:var(--green)"></div><span>Entregue</span><strong id="stat-entregue" style="color:var(--green)">—</strong></div>
-  <div class="stat-chip"><div class="dot" style="background:var(--yellow)"></div><span>Ausente</span><strong id="stat-ausente" style="color:var(--yellow)">—</strong></div>
-  <div class="stat-chip"><div class="dot" style="background:var(--dim)"></div><span>Outros</span><strong id="stat-outros" style="color:var(--dim)">—</strong></div>
-</div>
+
 
 <!-- SEARCH -->
 <div class="search-section">
@@ -644,11 +637,6 @@ function render() {
     else if(s==='AUSENTE') ausente++;
     else outros++;
   });
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-rota').textContent = rota;
-  document.getElementById('stat-entregue').textContent = entregue;
-  document.getElementById('stat-ausente').textContent = ausente;
-  document.getElementById('stat-outros').textContent = outros;
   document.getElementById('gerente-section').style.display = 'block';
 
   // Group by region > agent
