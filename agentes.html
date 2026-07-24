@@ -778,7 +778,7 @@ function buscarAgente() {
       const bc = badgeClass(s);
       const dest = r['Destinatario'] || r['Destinatário'] || '—';
       const end = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '—';
-      const pedido = r['NÂº Pedido'] || r['Nº Pedido'] || r['N\u00BA Pedido'] || '—';
+      const pedido = r['NÂº Pedido'] || r['Nº Pedido'] || r['NÃº Pedido'] || r['N\u00c2\u00ba Pedido'] || Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—';
       const cep = r['Cep'] || '—';
       const aberto = isAbertaMercadoLivre(r);
       return `<div class="pedido-item ${sc}">
