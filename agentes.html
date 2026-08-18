@@ -493,6 +493,11 @@
     </select>
   </div>
   <div style="display:flex;gap:8px">
+    <select id="filter-servico" onchange="applyFilters()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:6px;font-family:Barlow,sans-serif;font-size:14px;outline:none">
+      <option value="">Todos os Serviços</option>
+      <option value="ML">Mercado Livre</option>
+      <option value="SHOPEE">Shopee</option>
+    </select>
     <select id="filter-status" onchange="applyFilters()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:6px;font-family:Barlow,sans-serif;font-size:14px;outline:none">
       <option value="">Todos os Status</option>
       <option value="EM ROTA">Em Rota</option>
@@ -538,22 +543,52 @@ D_RESP.forEach(d => respMap[d.r] = d.g);
 let rawData = [];
 let openRegions = new Set();
 
+function normalizeServico(row) {
+  const serv = (row['Servico'] || row['Serviço'] || '').trim().toUpperCase();
+  if (serv.includes('SHOPEE')) return 'SHOPEE';
+  if (serv.includes('MERCADO') || serv.includes('FLEX')) return 'ML';
+  return 'OUTROS';
+}
+
 function normalizeStatus(row) {
+  const servico = normalizeServico(row);
   const hist = (row['Historico'] || '').trim().toUpperCase();
   const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
+  const ecomPrimeiro = ecom.split('<QL>')[0].trim();
+
+  if (servico === 'ML') {
+    // ML: F define — A CAMINHO = em aberto
+    if (ecomPrimeiro.startsWith('A CAMINHO')) return 'EM ROTA';
+    if (hist === 'ENTREGUE') return 'ENTREGUE';
+    if (hist === 'AUSENTE') return 'AUSENTE';
+    return hist || 'OUTROS';
+  }
+
+  if (servico === 'SHOPEE') {
+    // Shopee: F sempre diz EM ROTA, não serve de definidor — usa D
+    if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
+    if (hist === 'ENTREGUE') return 'ENTREGUE';
+    if (hist === 'AUSENTE') return 'AUSENTE';
+    if (hist === 'RECUSADO') return 'RECUSADO';
+    if (hist === 'CANCELADO') return 'CANCELADO';
+    return hist || 'OUTROS';
+  }
+
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
   if (hist === 'ENTREGUE') return 'ENTREGUE';
   if (hist === 'AUSENTE') return 'AUSENTE';
-  if (hist === 'RECUSADO') return 'RECUSADO';
-  if (hist === 'CANCELADO') return 'CANCELADO';
-  if (ecom.startsWith('A CAMINHO')) return 'EM ROTA';
   return hist || 'OUTROS';
 }
 
-function isAbertaMercadoLivre(row) {
-  const hist = (row['Historico'] || '').trim().toUpperCase();
+function isAbertaEcommerce(row) {
   const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
-  return (hist === 'ENTREGUE' || hist === 'AUSENTE') && ecom.startsWith('A CAMINHO');
+  const ecomPrimeiro = ecom.split('<QL>')[0].trim();
+  const hist = (row['Historico'] || '').trim().toUpperCase();
+  const servico = normalizeServico(row);
+  if (servico === 'ML') {
+    return ecomPrimeiro.startsWith('A CAMINHO') && hist !== 'EM ROTA DE ENTREGA';
+  }
+  return false;
 }
 
 function statusClass(s) {
@@ -605,13 +640,16 @@ function getFiltered() {
   const gFilter = document.getElementById('filter-gerente').value;
   const rFilter = document.getElementById('filter-regiao').value;
   const sFilter = document.getElementById('filter-status').value;
+  const servFilter = document.getElementById('filter-servico').value;
   return rawData.filter(row => {
     const reg = (row['Regiao Destino']||'').trim().toUpperCase();
     const gerente = respMap[reg] || '';
     const status = normalizeStatus(row);
+    const servico = normalizeServico(row);
     if (gFilter && gerente !== gFilter) return false;
     if (rFilter && reg !== rFilter) return false;
     if (sFilter && status !== sFilter) return false;
+    if (servFilter && servico !== servFilter) return false;
     return true;
   });
 }
@@ -621,6 +659,7 @@ function clearFilters() {
   document.getElementById('filter-gerente').value = '';
   document.getElementById('filter-regiao').value = '';
   document.getElementById('filter-status').value = '';
+  document.getElementById('filter-servico').value = '';
   render();
 }
 
@@ -780,7 +819,7 @@ function buscarAgente() {
       const end = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '—';
       const pedido = r['NÂº Pedido'] || r['Nº Pedido'] || r['NÃº Pedido'] || r['N\u00c2\u00ba Pedido'] || Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—';
       const cep = r['Cep'] || '—';
-      const aberto = isAbertaMercadoLivre(r);
+      const aberto = isAbertaEcommerce(r);
       return `<div class="pedido-item ${sc}">
         <div class="pedido-top">
           <div class="pedido-remessa">${pedido}</div>
@@ -789,7 +828,7 @@ function buscarAgente() {
         <div class="pedido-dest">${dest}</div>
         <div class="pedido-end">${end}</div>
         <div class="pedido-end" style="color:var(--dim);margin-top:2px">CEP: ${cep}</div>
-        ${aberto ? '<div class="pedido-alert">⚠️ Aberto no Mercado Livre</div>' : ''}
+        ${aberto ? `<div class="pedido-alert">⚠️ Em aberto no ${normalizeServico(r) === 'SHOPEE' ? 'Shopee' : 'Mercado Livre'}</div>` : ''}
       </div>`;
     }).join('');
 
