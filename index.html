@@ -429,12 +429,20 @@
     <select id="filter-regiao" onchange="renderDashboard()">
       <option value="">Todas as Regiões</option>
     </select>
+    <select id="filter-servico" onchange="renderDashboard()">
+      <option value="">Todos os Serviços</option>
+      <option value="ML">Mercado Livre</option>
+      <option value="SHOPEE">Shopee</option>
+    </select>
     <select id="filter-status" onchange="renderDashboard()">
       <option value="">Todos os Status</option>
       <option value="EM ROTA">Em Rota</option>
       <option value="ENTREGUE">Entregue</option>
       <option value="AUSENTE">Ausente</option>
     </select>
+    <input id="search-agente" type="text" placeholder="🔍 Buscar agente por código..." 
+      style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:4px;font-family:Barlow,sans-serif;font-size:14px;outline:none;width:220px"
+      oninput="renderDashboard()" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border)'">
     <button class="btn-clear" onclick="clearFilters()">✕ Limpar Filtros</button>
     <button class="btn-clear" onclick="document.getElementById('file-input').click()">↑ Nova Planilha</button>
   </div>
@@ -486,22 +494,46 @@ D_RESPONSABILIDADE.forEach(r => { respMap[r.regiao_tracken] = r; });
 let rawData = [];
 let collapsedRegions = new Set();
 
-// STATUS MAPPING
+// SERVIÇO
+function normalizeServico(row) {
+  const serv = (row['Servico'] || row['Serviço'] || '').trim().toUpperCase();
+  if (serv.includes('SHOPEE')) return 'SHOPEE';
+  if (serv.includes('MERCADO') || serv.includes('FLEX')) return 'ML';
+  return 'OUTROS';
+}
+
+// STATUS — lógica diferenciada por serviço
 function normalizeStatus(row) {
+  const servico = normalizeServico(row);
   const hist = (row['Historico'] || '').trim().toUpperCase();
   const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
+  const ecomPrimeiro = ecom.split('<QL>')[0].trim();
 
-  // Historico é a fonte principal de verdade
+  if (servico === 'ML') {
+    // ML: Coluna F é o definidor
+    // Se F diz "A CAMINHO", pedido está em aberto — independente do D
+    if (ecomPrimeiro.startsWith('A CAMINHO')) return 'EM ROTA';
+    // Sem F confiável, usa D
+    if (hist === 'ENTREGUE') return 'ENTREGUE';
+    if (hist === 'AUSENTE') return 'AUSENTE';
+    return hist || 'OUTROS';
+  }
+
+  if (servico === 'SHOPEE') {
+    // Shopee: F sempre diz "EM ROTA" — não serve de definidor
+    // Usa coluna D como status real
+    if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
+    if (hist === 'ENTREGUE') return 'ENTREGUE';
+    if (hist === 'AUSENTE') return 'AUSENTE';
+    if (hist === 'RECUSADO') return 'RECUSADO';
+    if (hist === 'CANCELADO') return 'CANCELADO';
+    return hist || 'OUTROS';
+  }
+
+  // Fallback genérico
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
   if (hist === 'ENTREGUE') return 'ENTREGUE';
   if (hist === 'AUSENTE') return 'AUSENTE';
-  if (hist === 'RECUSADO') return 'RECUSADO';
-  if (hist === 'CANCELADO') return 'CANCELADO';
-
-  // Exceção: se Historico não fechou mas Ecommerce diz "A CAMINHO" → ainda está em rota
-  if (ecom.startsWith('A CAMINHO')) return 'EM ROTA';
-
-  // Qualquer outro status do Historico
   return hist || 'OUTROS';
 }
 
@@ -605,16 +637,22 @@ function getFiltered() {
   const gFilter = document.getElementById('filter-gerente').value;
   const rFilter = document.getElementById('filter-regiao').value;
   const sFilter = document.getElementById('filter-status').value;
+  const servFilter = document.getElementById('filter-servico').value;
+  const searchFilter = (document.getElementById('search-agente').value || '').trim().toLowerCase();
 
   return rawData.filter(row => {
     const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
     const resp = respMap[reg];
     const gerente = resp?.gerente || '';
     const status = normalizeStatus(row);
+    const servico = normalizeServico(row);
+    const agente = (row['Agente'] || '').trim().toLowerCase();
 
     if (gFilter && gerente !== gFilter) return false;
     if (rFilter && reg !== rFilter) return false;
     if (sFilter && !status.includes(sFilter)) return false;
+    if (servFilter && servico !== servFilter) return false;
+    if (searchFilter && !agente.includes(searchFilter)) return false;
     return true;
   });
 }
@@ -623,6 +661,8 @@ function clearFilters() {
   document.getElementById('filter-gerente').value = '';
   document.getElementById('filter-regiao').value = '';
   document.getElementById('filter-status').value = '';
+  document.getElementById('filter-servico').value = '';
+  document.getElementById('search-agente').value = '';
   renderDashboard();
 }
 
@@ -765,10 +805,14 @@ function renderDashboard() {
   const maxAgent = topAgents[0]?.[1] || 1;
   document.getElementById('agents-list').innerHTML = topAgents.map(([ag, c], i) => {
     const pct = Math.round(c / maxAgent * 100);
-    const shortName = ag.split(' - ').slice(1).join(' ') || ag;
+    const codMatch = ag.match(/^(\d+)/);
+    const cod = codMatch ? codMatch[1] : '';
+    const nome = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
     return `<div class="agent-item">
       <div class="agent-num">${i+1}</div>
-      <div class="agent-name" title="${ag}">${shortName}</div>
+      <div class="agent-name" title="${ag}">
+        ${cod ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--red);font-weight:700;margin-right:4px">${cod}</span>` : ''}${nome}
+      </div>
       <div class="agent-bar-wrap"><div class="agent-bar" style="width:${pct}%"></div></div>
       <div class="agent-count">${c}</div>
     </div>`;
