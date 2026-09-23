@@ -521,6 +521,32 @@
 <script>
 const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
 
+// === Aba Controle (carimbo "Snapshot" gravado pelo robô) ===
+const CONTROLE_URL = SHEETS_URL.replace('gid=0', 'gid=1344066483');
+const INTERVALO_ATUALIZACAO = 5 * 60 * 1000; // 5 minutos
+function urlSemCache(url) { return url + '&t=' + Date.now(); }
+async function lerSnapshot() {
+  try {
+    const r = await fetch(urlSemCache(CONTROLE_URL), { cache: 'no-store' });
+    const t = await r.text();
+    const m = t.match(/Snapshot\s*,\s*"?([^"\r\n,]+)/i);
+    return m ? m[1].trim() : null;
+  } catch (e) { return null; }
+}
+function horaAgora() {
+  const n = new Date();
+  return n.toLocaleDateString('pt-BR') + ' ' + n.toTimeString().slice(0, 5);
+}
+function guardarFiltros() {
+  return [...document.querySelectorAll('select[id^="filter-"]')].map(s => [s.id, s.value]);
+}
+function restaurarFiltros(salvos) {
+  salvos.forEach(([id, val]) => {
+    const s = document.getElementById(id);
+    if (s && [...s.options].some(o => o.value === val)) s.value = val;
+  });
+}
+
 const D_RESP = [
   {r:"BARUERI_1",g:"DANIEL"},{r:"BARUERI_2",g:"DANIEL"},{r:"CARAPICUIBA",g:"DANIEL"},
   {r:"CENTRO",g:"RODRIGO"},{r:"COTIA",g:"DANIEL"},{r:"DIADEMA",g:"BRUNO"},
@@ -607,21 +633,24 @@ function badgeClass(s) {
 
 async function loadData() {
   try {
-    const resp = await fetch(SHEETS_URL);
+    const resp = await fetch(urlSemCache(SHEETS_URL), { cache: 'no-store' });
     if (!resp.ok) throw new Error('Erro ' + resp.status);
     const buffer = await resp.arrayBuffer();
     const wb = XLSX.read(buffer, { type: 'array' });
     const ws = wb.Sheets[wb.SheetNames[0]];
-    rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
-    if (rawData.length === 0) throw new Error('Vazia');
-    const now = new Date();
-    document.getElementById('header-time').textContent =
-      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
+    const novos = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    if (novos.length === 0) throw new Error('Vazia');
+    rawData = novos;
+    document.getElementById('header-time').textContent = (await lerSnapshot()) || horaAgora();
+    const filtros = guardarFiltros();
     populateFilters();
+    restaurarFiltros(filtros);
     render();
   } catch(e) {
-    document.getElementById('loading').innerHTML =
-      '<div style="color:#f59e0b;font-size:14px">⚠️ Erro ao carregar dados.<br>Verifique a conexão.</div>';
+    if (!rawData || rawData.length === 0) {
+      document.getElementById('loading').innerHTML =
+        '<div style="color:#f59e0b;font-size:14px">⚠️ Erro ao carregar dados.<br>Verifique a conexão.</div>';
+    }
   }
 }
 
@@ -864,6 +893,7 @@ function clearSearch() {
 }
 
 loadData();
+setInterval(loadData, INTERVALO_ATUALIZACAO);
 </script>
 </body>
 </html>
