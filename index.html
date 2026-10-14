@@ -491,6 +491,22 @@ const D_RESPONSABILIDADE = [{"regiao_tracken":"BARUERI_1","regiao":"BARUERI","ma
 const respMap = {};
 D_RESPONSABILIDADE.forEach(r => { respMap[r.regiao_tracken] = r; });
 
+// Override de gerente por código de agente (agentes que pertencem a gerente diferente da região)
+const AGENT_GERENTE_OVERRIDE = {
+  '883':  'RODRIGO',  // GABRIEL CARDOSO DA COSTA
+  '1626': 'RODRIGO'  // FELIPE WISNIEWSKI ARMAGNI
+};
+
+function getGerente(row) {
+  const ag = (row['Agente'] || '').trim();
+  const codMatch = ag.match(/^(\d+)/);
+  if (codMatch && AGENT_GERENTE_OVERRIDE[codMatch[1]]) {
+    return AGENT_GERENTE_OVERRIDE[codMatch[1]];
+  }
+  const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
+  return respMap[reg]?.gerente || '';
+}
+
 let rawData = [];
 let collapsedRegions = new Set();
 
@@ -540,57 +556,28 @@ function normalizeStatus(row) {
 // === GOOGLE SHEETS URL (aba Base) ===
 const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
 
-// === Aba Controle (carimbo "Snapshot" gravado pelo robô) ===
-const CONTROLE_URL = SHEETS_URL.replace('gid=0', 'gid=1344066483');
-const INTERVALO_ATUALIZACAO = 5 * 60 * 1000; // 5 minutos
-function urlSemCache(url) { return url + '&t=' + Date.now(); }
-async function lerSnapshot() {
-  try {
-    const r = await fetch(urlSemCache(CONTROLE_URL), { cache: 'no-store' });
-    const t = await r.text();
-    const m = t.match(/Snapshot\s*,\s*"?([^"\r\n,]+)/i);
-    return m ? m[1].trim() : null;
-  } catch (e) { return null; }
-}
-function horaAgora() {
-  const n = new Date();
-  return n.toLocaleDateString('pt-BR') + ' ' + n.toTimeString().slice(0, 5);
-}
-function guardarFiltros() {
-  return [...document.querySelectorAll('select[id^="filter-"]')].map(s => [s.id, s.value]);
-}
-function restaurarFiltros(salvos) {
-  salvos.forEach(([id, val]) => {
-    const s = document.getElementById(id);
-    if (s && [...s.options].some(o => o.value === val)) s.value = val;
-  });
-}
-
 // AUTO-LOAD do Sheets ao abrir a página
 async function autoLoadFromSheets() {
   const status = document.getElementById('auto-load-status');
   try {
     status.textContent = 'Conectando ao Google Sheets...';
-    const resp = await fetch(urlSemCache(SHEETS_URL), { cache: 'no-store' });
+    const resp = await fetch(SHEETS_URL);
     if (!resp.ok) throw new Error('Erro ' + resp.status);
     const csvText = await resp.text();
     const wb = XLSX.read(csvText, { type: 'string' });
     const ws = wb.Sheets[wb.SheetNames[0]];
-    const novos = XLSX.utils.sheet_to_json(ws, { defval: '' });
-    if (novos.length === 0) throw new Error('Planilha vazia');
-    rawData = novos;
-    document.getElementById('snapshot-time').textContent = (await lerSnapshot()) || horaAgora();
-    const filtros = guardarFiltros();
+    rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    if (rawData.length === 0) throw new Error('Planilha vazia');
+    const now = new Date();
+    document.getElementById('snapshot-time').textContent =
+      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
     populateFilters();
-    restaurarFiltros(filtros);
     renderDashboard();
     document.getElementById('upload-section').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
   } catch(err) {
-    if (!rawData || rawData.length === 0) {
-      status.textContent = 'Erro ao carregar automaticamente. Importe o CSV manualmente.';
-      status.style.color = '#f59e0b';
-    }
+    status.textContent = 'Erro ao carregar automaticamente. Importe o CSV manualmente.';
+    status.style.color = '#f59e0b';
   }
 }
 
@@ -607,9 +594,8 @@ dropZone.addEventListener('drop', e => {
 });
 fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
 
-// Carrega automaticamente ao abrir e depois a cada 5 minutos
+// Carrega automaticamente ao abrir
 autoLoadFromSheets();
-setInterval(autoLoadFromSheets, INTERVALO_ATUALIZACAO);
 
 function processFile(file) {
   const reader = new FileReader();
@@ -646,8 +632,7 @@ function processFile(file) {
 
 function populateFilters() {
   const gerentes = [...new Set(rawData.map(r => {
-    const reg = (r['Regiao Destino'] || r['Região Destino'] || '').trim().toUpperCase();
-    return respMap[reg]?.gerente || '';
+    return getGerente(r);
   }).filter(Boolean))].sort();
 
   const regioes = [...new Set(rawData.map(r =>
@@ -672,8 +657,7 @@ function getFiltered() {
 
   return rawData.filter(row => {
     const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
-    const resp = respMap[reg];
-    const gerente = resp?.gerente || '';
+    const gerente = getGerente(row);
     const status = normalizeStatus(row);
     const servico = normalizeServico(row);
     const agente = (row['Agente'] || '').trim().toLowerCase();
