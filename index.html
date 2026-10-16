@@ -1,99 +1,122 @@
-<title>FlexBoys Monitoramento</title>
+<title>FlexBoys Monitor</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
 
 <style>
-/* ============================================================
-   TOKENS — dark-first (operational dashboard, always dark)
-   Layout: sticky header + tab nav + scrollable content area
-   ============================================================ */
+/* ═══════════════════════════════════════════════════════════════
+   FLEXBOYS MONITOR — design system
+   Paleta: azul-noite profundo (#050C18) + vermelho operacional
+   Tipo: Inter (texto) + JetBrains Mono (números/dados)
+   Conceito: painel de despacho / torre de controle
+   ═══════════════════════════════════════════════════════════════ */
 :root {
-  --red:        #C8102E;
-  --red-dim:    rgba(200,16,46,0.15);
-  --red-glow:   rgba(200,16,46,0.35);
-  --green:      #22c55e;
-  --green-dim:  rgba(34,197,94,0.12);
-  --yellow:     #f59e0b;
-  --yellow-dim: rgba(245,158,11,0.12);
-  --blue:       #3b82f6;
-  --blue-dim:   rgba(59,130,246,0.12);
-  --purple:     #a855f7;
-  --gray:       #6b7280;
+  /* Cores base — azul-noite */
+  --night:    #050C18;
+  --night1:   #080F1E;
+  --night2:   #0C1529;
+  --night3:   #111D35;
+  --night4:   #172341;
 
-  --bg:         #0a0a0a;
-  --bg2:        #111111;
-  --bg3:        #181818;
-  --bg4:        #1f1f1f;
-  --border:     #252525;
-  --border2:    #2e2e2e;
-  --text:       #e8e8e8;
-  --text-dim:   #777;
-  --text-mid:   #aaa;
+  /* Bordas */
+  --line:     rgba(255,255,255,0.06);
+  --line2:    rgba(255,255,255,0.1);
 
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body:    'Barlow', sans-serif;
+  /* Texto */
+  --ink:      #E8EDF5;
+  --ink-mid:  #8899BB;
+  --ink-dim:  #445577;
+
+  /* Acento principal — vermelho FlexBoys */
+  --red:      #E8002D;
+  --red-d:    rgba(232,0,45,0.15);
+  --red-g:    rgba(232,0,45,0.3);
+
+  /* Status */
+  --rota:     #3B8BFF;   /* azul elétrico — em movimento */
+  --rota-d:   rgba(59,139,255,0.12);
+  --ok:       #00C46A;   /* verde — entregue */
+  --ok-d:     rgba(0,196,106,0.12);
+  --warn:     #F5A623;   /* âmbar — ausente */
+  --warn-d:   rgba(245,166,35,0.12);
+  --ghost:    #5B6F8F;   /* cinza — outros */
+  --ghost-d:  rgba(91,111,143,0.12);
+  --purple:   #A78BFA;
+
+  /* Alerta tempo */
+  --t-ok:     #00C46A;
+  --t-attn:   #F5A623;
+  --t-crit:   #FF4444;
+  --t-max:    #A78BFA;
+
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', 'SF Mono', monospace;
 
   color-scheme: dark;
 }
-
-/* Single-theme (always dark — operational tool) */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── STICKY HEADER ── */
-.app-header {
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
-  z-index: 50;
-  background: #0d0d0d;
-  border-bottom: 2px solid var(--red);
-  box-shadow: 0 2px 16px var(--red-glow);
-  padding: 0 max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 52px;
-  gap: 12px;
-}
+/* ── HEADER ── */
 body::before {
   content: "";
   position: fixed;
   inset: 0 0 auto;
   height: env(safe-area-inset-top, 0px);
-  background: #0d0d0d;
-  z-index: 51;
+  background: var(--night1);
+  z-index: 60;
+}
+
+.app-header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  background: var(--night1);
+  border-bottom: 1px solid var(--line2);
+  padding: 0 max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 16px;
 }
 
 .logo {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #fff;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.logo span { color: var(--red); }
-
-.header-center {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: var(--font-data);
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 3px;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
   text-transform: uppercase;
-  color: var(--text-dim);
-  text-align: center;
+}
+.logo em { color: var(--red); font-style: normal; }
+
+/* Linha de status no header — separador vertical */
+.header-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--line2);
+  flex-shrink: 0;
+}
+
+.header-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -101,196 +124,320 @@ body::before {
   white-space: nowrap;
 }
 
-.snapshot-pill {
-  font-size: 11px;
-  color: var(--text-dim);
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
+.snap-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  background: var(--night3);
+  border: 1px solid var(--line2);
+  border-radius: 6px;
   flex-shrink: 0;
 }
-.snapshot-pill strong { color: var(--text-mid); }
+.snap-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: blink 2.5s ease infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.snap-pill span {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
 
-/* ── UPLOAD SCREEN ── */
+/* ── UPLOAD ── */
 .upload-screen {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 52px);
-  padding: 24px max(16px, env(safe-area-inset-left, 0px));
+  min-height: calc(100vh - 56px);
+  padding: 32px max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
+
 .upload-card {
-  background: var(--bg2);
-  border: 2px dashed var(--red);
-  border-radius: 12px;
-  padding: 40px 24px;
+  background: var(--night2);
+  border: 1px solid var(--line2);
+  border-radius: 16px;
+  padding: 48px 32px;
   text-align: center;
-  max-width: 480px;
+  max-width: 440px;
   width: 100%;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
 }
-.upload-card:hover, .upload-card.dragover { background: var(--red-dim); border-color: #ff3355; }
-.upload-icon { font-size: 40px; margin-bottom: 16px; }
+.upload-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(232,0,45,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.upload-card:hover { border-color: var(--red); background: var(--night3); }
+.upload-card.dragover { border-color: var(--red); background: var(--red-d); }
+
+.upload-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  background: var(--red-d);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 28px;
+}
+
 .upload-card h2 {
-  font-family: var(--font-display);
-  font-size: 22px;
+  font-family: var(--font-data);
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 8px;
+  color: var(--ink);
 }
-.upload-card p { color: var(--text-dim); font-size: 13px; margin-bottom: 4px; }
-#auto-load-status { color: var(--text-mid); margin-bottom: 12px; font-size: 13px; }
+.upload-card p { color: var(--ink-dim); font-size: 13px; margin-bottom: 4px; }
+
+#auto-load-status {
+  color: var(--ink-mid);
+  font-size: 12px;
+  margin-bottom: 20px;
+  font-family: var(--font-data);
+}
+
 .btn-primary {
-  display: inline-block;
-  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
   background: var(--red);
   color: #fff;
   border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
-.btn-primary:hover { background: #a50c24; }
+.btn-primary:hover { background: #c4002a; }
+.btn-primary:active { transform: scale(0.98); }
 .upload-card input[type=file] { display: none; }
 
-/* ── MAIN APP ── */
+/* ── APP ── */
 #app { display: none; flex-direction: column; height: 100%; }
 #app.visible { display: flex; }
 
 /* ── TAB NAV ── */
 .tab-nav {
   display: flex;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
+  background: var(--night1);
+  border-bottom: 1px solid var(--line);
   overflow-x: auto;
   scrollbar-width: none;
   padding: 0 max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   flex-shrink: 0;
+  gap: 4px;
 }
 .tab-nav::-webkit-scrollbar { display: none; }
+
 .tab-btn {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-dim);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--ink-dim);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: 12px 16px;
+  padding: 14px 14px 12px;
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.tab-btn:hover { color: var(--text-mid); }
-.tab-btn.active { color: var(--text); border-bottom-color: var(--red); }
+.tab-btn:hover { color: var(--ink-mid); }
+.tab-btn.active {
+  color: var(--ink);
+  border-bottom-color: var(--red);
+}
+.tab-btn .tb-icon { font-size: 14px; }
 
-/* ── SCROLLABLE CONTENT ── */
+/* ── CONTENT ── */
 .tab-content { overflow-y: auto; flex: 1; }
-.tab-pane { display: none; padding: 16px max(16px, env(safe-area-inset-left, 0px));
+.tab-pane {
+  display: none;
+  padding: 20px max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+}
 .tab-pane.active { display: block; }
 
-/* ── FILTERS BAR ── */
+/* ── FILTROS ── */
 .filters-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
-.filter-select {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  padding: 7px 10px;
-  border-radius: 6px;
-  font-family: var(--font-body);
+
+.filter-select, .search-input {
+  background: var(--night2);
+  border: 1px solid var(--line2);
+  color: var(--ink);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: var(--font-ui);
   font-size: 13px;
   cursor: pointer;
   outline: none;
   min-width: 0;
-  flex: 1 1 120px;
+  flex: 1 1 130px;
+  transition: border-color 0.15s;
 }
-.filter-select:focus { border-color: var(--red); }
-.search-input {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  padding: 7px 10px;
-  border-radius: 6px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  outline: none;
-  flex: 1 1 160px;
-}
-.search-input:focus { border-color: var(--red); }
-.search-input::placeholder { color: var(--text-dim); }
+.filter-select:focus, .search-input:focus { border-color: var(--red); }
+.search-input::placeholder { color: var(--ink-dim); }
+
 .btn-ghost {
   background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--text-dim);
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-family: var(--font-body);
+  border: 1px solid var(--line2);
+  color: var(--ink-dim);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: var(--font-ui);
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.15s, color 0.15s;
   flex-shrink: 0;
 }
-.btn-ghost:hover { border-color: var(--red); color: var(--text); }
+.btn-ghost:hover { border-color: var(--red); color: var(--ink); }
 
-/* ── KPI ROW ── */
+/* ── KPI ROW — horizontal com barra de proporção integrada ── */
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
-@media (min-width: 500px) { .kpi-row { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 900px) { .kpi-row { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 480px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 780px) { .kpi-row { grid-template-columns: repeat(5, 1fr); } }
 
 .kpi {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--kpi-color, var(--red));
-  border-radius: 8px;
-  padding: 12px 14px;
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
   min-width: 0;
+  position: relative;
+  overflow: hidden;
 }
+/* borda esquerda colorida */
+.kpi::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--kpi-color, var(--line2));
+  border-radius: 3px 0 0 3px;
+}
+/* glow sutil no fundo */
+.kpi::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 0% 50%, var(--kpi-glow, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 .kpi-label {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   margin-bottom: 6px;
 }
 .kpi-value {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 6vw, 40px);
-  font-weight: 800;
+  font-family: var(--font-data);
+  font-size: clamp(26px, 5.5vw, 38px);
+  font-weight: 700;
   line-height: 1;
-  color: var(--kpi-color, #fff);
+  color: var(--kpi-color, var(--ink));
   font-variant-numeric: tabular-nums;
 }
-.kpi-sub {
+.kpi-bar {
+  height: 2px;
+  background: var(--line);
+  border-radius: 1px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.kpi-bar-fill {
+  height: 100%;
+  background: var(--kpi-color, var(--line2));
+  border-radius: 1px;
+  transition: width 0.5s ease;
+}
+
+/* ── SERVICE STRIP ── */
+.service-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.service-chip {
+  background: var(--night2);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  flex: 1 1 140px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+.service-chip:hover { border-color: var(--line2); }
+.service-chip-badge {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.chip-ml { background: rgba(245,166,35,0.12); }
+.chip-shopee { background: rgba(255,102,0,0.12); }
+.service-chip-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 2px;
+}
+.service-chip-val {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.service-chip-sub {
   font-size: 11px;
-  color: var(--text-dim);
-  margin-top: 4px;
+  color: var(--ink-mid);
+  margin-top: 2px;
 }
 
 /* ── SECTION HEADER ── */
@@ -302,119 +449,130 @@ body::before {
   gap: 8px;
 }
 .section-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 .count-pill {
-  font-family: var(--font-display);
+  font-family: var(--font-data);
   font-size: 11px;
-  font-weight: 700;
-  background: var(--red-dim);
+  font-weight: 600;
+  background: var(--red-d);
   color: var(--red);
-  padding: 2px 8px;
+  padding: 2px 10px;
   border-radius: 20px;
   white-space: nowrap;
 }
 
-/* ── TABLE ── */
-.table-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.table-wrap { overflow-x: auto; max-height: 65vh; overflow-y: auto; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 480px;
-}
-thead th {
-  background: var(--bg3);
-  padding: 9px 12px;
-  text-align: left;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  position: sticky;
-  top: 0;
-  white-space: nowrap;
-  border-bottom: 1px solid var(--border);
-  z-index: 2;
-}
-thead th.r { text-align: right; }
-tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,0.025); }
-
-.row-region {
-  background: rgba(200,16,46,0.07) !important;
-  cursor: pointer;
-}
-.row-region:hover { background: rgba(200,16,46,0.12) !important; }
-.row-region td {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 9px 12px;
-}
-.row-agent td {
-  padding: 7px 12px 7px 26px;
-  color: var(--text-dim);
-}
-.row-agent td:first-child { color: var(--text-mid); font-size: 12px; }
-
-td.r { text-align: right; font-family: var(--font-display); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
-td.r span { display: inline-block; min-width: 28px; }
-
-.badge-g {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  background: rgba(200,16,46,0.18);
-  color: #ff6680;
-}
-
-.toggle-icon { margin-right: 6px; display: inline-block; transition: transform 0.15s; }
-.row-region.collapsed .toggle-icon { transform: rotate(-90deg); }
-
-/* ── SPLIT GRID (desktop) ── */
+/* ── SPLIT GRID ── */
 .split-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 16px;
 }
-@media (min-width: 800px) { .split-grid { grid-template-columns: 1fr 300px; } }
+@media (min-width: 800px) { .split-grid { grid-template-columns: 1fr 280px; } }
 
-/* ── STATUS LIST ── */
+/* ── TABLE ── */
+.table-card {
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-wrap { overflow-x: auto; max-height: 62vh; overflow-y: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 460px;
+}
+thead th {
+  background: var(--night3);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line2);
+  z-index: 2;
+}
+thead th.r { text-align: right; }
+
+tbody tr { border-bottom: 1px solid var(--line); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+.row-region {
+  background: rgba(59,139,255,0.04) !important;
+  cursor: pointer;
+}
+.row-region:hover { background: rgba(59,139,255,0.08) !important; }
+.row-region td {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  color: var(--ink-mid);
+}
+
+.row-agent td {
+  padding: 7px 14px 7px 28px;
+  color: var(--ink-dim);
+}
+.row-agent td:first-child { color: var(--ink-mid); font-size: 13px; }
+
+td.r {
+  text-align: right;
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding-right: 16px;
+}
+td.r span { display: inline-block; min-width: 24px; }
+
+.badge-g {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: var(--night4);
+  color: var(--rota);
+  border: 1px solid rgba(59,139,255,0.2);
+}
+
+.toggle-icon { margin-right: 6px; display: inline-block; transition: transform 0.15s; }
+.row-region.collapsed .toggle-icon { transform: rotate(-90deg); }
+
+/* ── SIDE CARDS ── */
 .status-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   overflow: hidden;
 }
 .card-head {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg3);
+  border-bottom: 1px solid var(--line);
+  background: var(--night3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-.card-body { padding: 8px 0; }
+.card-body { padding: 4px 0; }
+
 .status-item {
   display: flex;
   align-items: center;
@@ -422,12 +580,27 @@ td.r span { display: inline-block; min-width: 28px; }
   padding: 7px 14px;
 }
 .status-item:hover { background: rgba(255,255,255,0.02); }
-.s-name { font-size: 12px; color: var(--text-dim); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.s-bar-wrap { flex: 2; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 0; }
-.s-bar { height: 100%; border-radius: 3px; }
-.s-count { font-family: var(--font-display); font-size: 17px; font-weight: 700; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.s-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.s-bar-wrap { flex: 2; height: 3px; background: var(--line2); border-radius: 2px; overflow: hidden; min-width: 0; }
+.s-bar { height: 100%; border-radius: 2px; }
+.s-count {
+  font-family: var(--font-data);
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 
-/* ── TOP AGENTS CARD ── */
+/* ── TOP AGENTES ── */
 .agent-item {
   display: flex;
   align-items: center;
@@ -435,321 +608,369 @@ td.r span { display: inline-block; min-width: 28px; }
   padding: 7px 14px;
 }
 .agent-item:hover { background: rgba(255,255,255,0.02); }
-.a-rank { font-size: 11px; color: var(--text-dim); min-width: 18px; text-align: center; }
-.a-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.a-cod { font-family: var(--font-display); font-size: 12px; color: var(--red); font-weight: 700; }
-.a-bar-wrap { width: 50px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
-.a-bar { height: 100%; background: var(--blue); border-radius: 2px; }
-.a-count { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--blue); min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+.a-rank {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--ink-dim);
+  min-width: 18px;
+  text-align: center;
+}
+.a-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: var(--ink-mid); }
+.a-cod { font-family: var(--font-data); font-size: 12px; color: var(--red); font-weight: 700; }
+.a-bar-wrap { width: 40px; height: 3px; background: var(--line2); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+.a-bar { height: 100%; background: var(--rota); border-radius: 2px; }
+.a-count {
+  font-family: var(--font-data);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rota);
+  min-width: 26px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 
-/* ── SERVIÇO BREAKDOWN ── */
-.service-strip {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+/* ── TAGS ── */
+.tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  font-family: var(--font-data);
 }
-.service-chip {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 8px 14px;
-  flex: 1 1 120px;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.service-chip-icon { font-size: 20px; flex-shrink: 0; }
-.service-chip-name { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); }
-.service-chip-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
-.service-chip-sub { font-size: 10px; color: var(--text-dim); }
+.tag-ml     { background: rgba(245,166,35,0.12); color: #F5A623; }
+.tag-shopee { background: rgba(255,102,0,0.12);  color: #FF6600; }
+.tag-outros { background: var(--ghost-d);         color: var(--ghost); }
 
 /* ── ABA BUSCA ── */
 .search-hero {
-  text-align: center;
   padding: 24px 0 20px;
 }
 .search-hero h2 {
-  font-family: var(--font-display);
-  font-size: 20px;
+  font-family: var(--font-data);
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 1px;
   margin-bottom: 6px;
+  color: var(--ink);
 }
-.search-hero p { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+.search-hero p { color: var(--ink-dim); font-size: 13px; margin-bottom: 20px; }
+
 .search-box {
   display: flex;
   gap: 8px;
-  max-width: 480px;
-  margin: 0 auto 24px;
+  max-width: 420px;
+  margin: 0 auto 28px;
 }
 .search-box input {
   flex: 1;
-  background: var(--bg3);
-  border: 2px solid var(--border2);
-  color: var(--text);
+  background: var(--night2);
+  border: 1px solid var(--line2);
+  color: var(--ink);
   padding: 12px 16px;
-  border-radius: 8px;
-  font-family: var(--font-display);
-  font-size: 18px;
+  border-radius: 10px;
+  font-family: var(--font-data);
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   outline: none;
   transition: border-color 0.15s;
   min-width: 0;
 }
 .search-box input:focus { border-color: var(--red); }
-.search-box input::placeholder { color: var(--text-dim); font-weight: 400; letter-spacing: 0; }
+.search-box input::placeholder { color: var(--ink-dim); font-weight: 400; letter-spacing: 0; font-size: 14px; }
 .btn-search {
   background: var(--red);
   color: #fff;
   border: none;
   padding: 12px 20px;
-  border-radius: 8px;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 10px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
 }
-.btn-search:hover { background: #a50c24; }
+.btn-search:hover { background: #c4002a; }
 
 .agent-result-card {
-  max-width: 600px;
+  max-width: 580px;
   margin: 0 auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--night2);
+  border: 1px solid var(--line2);
+  border-radius: 14px;
   overflow: hidden;
 }
 .agent-result-header {
-  padding: 16px 20px;
-  background: var(--bg3);
-  border-bottom: 1px solid var(--border);
+  padding: 18px 20px;
+  background: var(--night3);
+  border-bottom: 1px solid var(--line);
 }
 .agent-result-name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
+  font-family: var(--font-data);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--ink);
 }
-.agent-result-meta { font-size: 12px; color: var(--text-dim); display: flex; gap: 12px; flex-wrap: wrap; }
+.agent-result-name em { color: var(--red); font-style: normal; }
+.agent-result-meta { font-size: 12px; color: var(--ink-dim); display: flex; gap: 12px; flex-wrap: wrap; }
 .agent-result-meta span { display: flex; align-items: center; gap: 4px; }
 
 .agent-status-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  background: var(--line);
   gap: 1px;
-  background: var(--border);
 }
-@media (min-width: 500px) { .agent-status-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 480px) { .agent-status-grid { grid-template-columns: repeat(4, 1fr); } }
+
 .status-tile {
-  background: var(--bg2);
-  padding: 14px 16px;
+  background: var(--night2);
+  padding: 16px;
   text-align: center;
 }
 .status-tile-val {
-  font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 800;
+  font-family: var(--font-data);
+  font-size: 34px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   margin-bottom: 4px;
 }
-.status-tile-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+.status-tile-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
 
-.pedidos-list { padding: 8px 0; max-height: 340px; overflow-y: auto; }
+.pedidos-list { padding: 4px 0; max-height: 320px; overflow-y: auto; }
 .pedido-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 7px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   gap: 12px;
 }
 .pedido-row:last-child { border-bottom: none; }
 .pedido-row:hover { background: rgba(255,255,255,0.02); }
-.pedido-num { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-mid); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pedido-status { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
-.pedido-data { font-size: 11px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+.pedido-num {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pedido-status {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-data);
+}
+.pedido-data { font-size: 11px; color: var(--ink-dim); white-space: nowrap; flex-shrink: 0; }
 
 .finalizado-banner {
   padding: 24px 20px;
   text-align: center;
 }
-.finalizado-banner .icon { font-size: 36px; margin-bottom: 10px; }
+.finalizado-banner .icon { font-size: 32px; margin-bottom: 10px; }
 .finalizado-banner h3 {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
+  font-family: var(--font-data);
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: 1px;
-  color: var(--green);
+  color: var(--ok);
   margin-bottom: 6px;
   text-transform: uppercase;
 }
-.finalizado-banner p { font-size: 13px; color: var(--text-dim); }
+.finalizado-banner p { font-size: 13px; color: var(--ink-dim); }
 
 .no-result {
-  max-width: 480px;
+  max-width: 420px;
   margin: 0 auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: var(--night2);
+  border: 1px solid var(--line2);
   border-radius: 12px;
   padding: 32px 24px;
   text-align: center;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   font-size: 14px;
 }
-.no-result strong { color: var(--text); }
+.no-result strong { color: var(--ink); }
 
 /* ── ABA TEMPO ── */
-.tempo-header {
+.info-box {
   margin-bottom: 16px;
-  padding: 14px 16px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--text-dim);
+  padding: 12px 16px;
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rota);
+  border-radius: 0 10px 10px 0;
+  font-size: 12px;
+  color: var(--ink-dim);
   line-height: 1.6;
 }
-.tempo-header strong { color: var(--text-mid); }
+.info-box strong { color: var(--ink-mid); }
+
+.alert-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--night2);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-dim); }
+.legend-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
 .tempo-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   overflow: hidden;
   margin-bottom: 16px;
 }
 .tempo-agent-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
   transition: background 0.1s;
   cursor: pointer;
 }
 .tempo-agent-row:last-child { border-bottom: none; }
 .tempo-agent-row:hover { background: rgba(255,255,255,0.025); }
-.t-rank { font-size: 11px; color: var(--text-dim); min-width: 20px; text-align: center; flex-shrink: 0; }
+
+.t-rank { font-family: var(--font-data); font-size: 11px; color: var(--ink-dim); min-width: 20px; text-align: center; flex-shrink: 0; }
 .t-info { flex: 1; min-width: 0; }
-.t-name { font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.t-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-.t-time-bar-wrap { flex: 2; min-width: 60px; max-width: 120px; }
-.t-time-bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.t-time-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.t-time-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; white-space: nowrap; }
-.t-count { font-family: var(--font-display); font-size: 16px; font-weight: 700; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.t-name { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-meta { font-size: 11px; color: var(--ink-dim); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.t-time-bar-wrap { flex: 2; min-width: 60px; max-width: 100px; }
+.t-time-bar-track { height: 4px; background: var(--line2); border-radius: 2px; overflow: hidden; }
+.t-time-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+.t-time-label { font-family: var(--font-data); font-size: 10px; color: var(--ink-dim); margin-top: 3px; white-space: nowrap; }
+.t-count { font-family: var(--font-data); font-size: 16px; font-weight: 700; min-width: 26px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .t-alert { font-size: 14px; flex-shrink: 0; }
 
-.alert-legend {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  background: var(--bg3);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+/* ── ABA CEP ── */
+.cep-list-wrap {
+  background: var(--night2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
 }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-/* ── EMPTY STATE ── */
-.empty { text-align: center; padding: 48px 16px; color: var(--text-dim); }
-.empty h3 { font-family: var(--font-display); font-size: 18px; color: var(--text-mid); margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
-
-/* ── REFRESH BTN ── */
-.refresh-row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 10px; }
-.refresh-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
-@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-/* ── UTILS ── */
-.tag {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-.tag-ml      { background: var(--yellow-dim); color: var(--yellow); }
-.tag-shopee  { background: var(--blue-dim); color: var(--blue); }
-.tag-outros  { background: rgba(107,114,128,0.12); color: var(--gray); }
-
-/* ── CEP CARD ── */
 .cep-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
   transition: background 0.1s;
+  flex-wrap: wrap;
 }
 .cep-row:last-child { border-bottom: none; }
-.cep-row:hover { background: rgba(255,255,255,0.025); }
+.cep-row:hover { background: rgba(255,255,255,0.02); }
 .cep-prefix {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
-  min-width: 52px;
+  font-family: var(--font-data);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 54px;
   letter-spacing: 1px;
+  padding-top: 2px;
 }
-.cep-bars { flex: 1; min-width: 0; }
-.cep-bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-.cep-bar-label { font-size: 10px; color: var(--text-dim); min-width: 58px; text-align: right; font-weight: 700; letter-spacing: 0.5px; }
-.cep-bar-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.cep-bar-fill { height: 100%; border-radius: 3px; }
-.cep-bar-val { font-family: var(--font-display); font-size: 13px; font-weight: 700; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
-.cep-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; min-width: 60px; }
-.cep-total { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
-.cep-taxa { font-size: 10px; color: var(--text-dim); font-weight: 700; letter-spacing: 0.5px; }
-.cep-taxa.ok { color: var(--green); }
-.cep-taxa.warn { color: var(--yellow); }
-.cep-taxa.bad { color: var(--red); }
+.cep-bars { flex: 1; min-width: 160px; }
+.cep-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.cep-bar-label { font-size: 9px; color: var(--ink-dim); min-width: 58px; text-align: right; font-weight: 600; letter-spacing: 0.5px; font-family: var(--font-data); }
+.cep-bar-track { flex: 1; height: 4px; background: var(--line2); border-radius: 2px; overflow: hidden; }
+.cep-bar-fill { height: 100%; border-radius: 2px; }
+.cep-bar-val { font-family: var(--font-data); font-size: 13px; font-weight: 700; min-width: 26px; text-align: right; font-variant-numeric: tabular-nums; }
+.cep-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; min-width: 58px; }
+.cep-total { font-family: var(--font-data); font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+.cep-taxa { font-family: var(--font-data); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.cep-taxa.ok   { color: var(--ok); }
+.cep-taxa.warn { color: var(--warn); }
+.cep-taxa.bad  { color: var(--red); }
+.cep-pedidos { font-size: 10px; color: var(--ink-dim); margin-top: 2px; word-break: break-all; line-height: 1.6; }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 48px 16px; color: var(--ink-dim); }
+.empty h3 { font-family: var(--font-data); font-size: 16px; color: var(--ink-mid); margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+
+/* ── REFRESH BTN ── */
+.refresh-row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 12px; }
+
+/* ── UTILS ── */
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: 0;
+}
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════
      MARKUP
 ════════════════════════════════════════════════════════════ -->
 
-<!-- Sticky Header -->
 <header class="app-header">
-  <div class="logo">FLEX<span>BOYS</span></div>
-  <div class="header-center">Monitoramento Operacional</div>
-  <div class="snapshot-pill">📡 <strong id="snap-time">—</strong></div>
+  <div class="logo">FLEX<em>BOYS</em></div>
+  <div class="header-sep"></div>
+  <div class="header-label">Monitoramento Operacional</div>
+  <div class="snap-pill">
+    <div class="snap-dot"></div>
+    <span id="snap-time">—</span>
+  </div>
 </header>
 
 <!-- Upload Screen -->
 <div id="upload-section" class="upload-screen">
   <div class="upload-card" id="drop-zone">
-    <div class="upload-icon">📦</div>
-    <h2>FlexBoys — Monitor</h2>
+    <div class="upload-icon-wrap">📦</div>
+    <h2>FlexBoys Monitor</h2>
     <p id="auto-load-status">Conectando ao Google Sheets...</p>
-    <p style="font-size:12px;color:var(--text-dim)">Ou importe o CSV manualmente</p>
-    <button class="btn-primary" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
+    <p style="font-size:12px;color:var(--ink-dim);margin-bottom:0">ou importe o arquivo manualmente</p>
+    <button class="btn-primary" onclick="document.getElementById('file-input').click()">
+      Selecionar Arquivo
+    </button>
     <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
   </div>
 </div>
 
 <!-- App -->
 <div id="app">
-  <!-- Tabs -->
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('operacional')">📊 Operacional</button>
-    <button class="tab-btn" onclick="switchTab('busca')">🔍 Busca Agente</button>
-    <button class="tab-btn" onclick="switchTab('tempo')">⏱ Tempo em Rota</button>
-    <button class="tab-btn" onclick="switchTab('cep')">📍 CEP Destino</button>
-    <button class="tab-btn" onclick="switchTab('nova')">↑ Nova Planilha</button>
+    <button class="tab-btn active" onclick="switchTab('operacional')">
+      <span class="tb-icon">◈</span> Operacional
+    </button>
+    <button class="tab-btn" onclick="switchTab('busca')">
+      <span class="tb-icon">◎</span> Busca Agente
+    </button>
+    <button class="tab-btn" onclick="switchTab('tempo')">
+      <span class="tb-icon">◷</span> Tempo em Rota
+    </button>
+    <button class="tab-btn" onclick="switchTab('cep')">
+      <span class="tb-icon">◉</span> CEP Destino
+    </button>
+    <button class="tab-btn" onclick="switchTab('nova')">
+      <span class="tb-icon">↑</span> Atualizar
+    </button>
   </nav>
 
   <div class="tab-content">
@@ -757,8 +978,7 @@ td.r span { display: inline-block; min-width: 28px; }
     <!-- ══ ABA OPERACIONAL ══ -->
     <div class="tab-pane active" id="pane-operacional">
 
-      <!-- Filtros -->
-      <div class="filters-bar" style="margin-top:14px">
+      <div class="filters-bar" style="margin-top:8px">
         <select class="filter-select" id="f-gerente" onchange="render()">
           <option value="">Todos os Gerentes</option>
         </select>
@@ -777,44 +997,48 @@ td.r span { display: inline-block; min-width: 28px; }
           <option value="AUSENTE">Ausente</option>
           <option value="OUTROS">Outros</option>
         </select>
-        <input class="search-input" id="f-agente" placeholder="🔍 Agente..." oninput="render()">
-        <button class="btn-ghost" onclick="clearFilters()">✕ Limpar</button>
+        <input class="search-input" id="f-agente" placeholder="Buscar agente..." oninput="render()">
+        <button class="btn-ghost" onclick="clearFilters()">Limpar</button>
       </div>
 
       <!-- Service strip -->
       <div class="service-strip" id="service-strip"></div>
 
       <!-- KPIs -->
-      <div class="kpi-row">
-        <div class="kpi" style="--kpi-color:var(--text)">
+      <div class="kpi-row" id="kpi-row">
+        <div class="kpi" style="--kpi-color:var(--ink-mid);--kpi-glow:rgba(232,237,245,0.04)">
           <div class="kpi-label">Total</div>
           <div class="kpi-value" id="k-total">0</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kb-total" style="width:100%"></div></div>
         </div>
-        <div class="kpi" style="--kpi-color:var(--red)">
+        <div class="kpi" style="--kpi-color:var(--rota);--kpi-glow:rgba(59,139,255,0.06)">
           <div class="kpi-label">Em Rota</div>
           <div class="kpi-value" id="k-rota">0</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kb-rota" style="width:0%"></div></div>
         </div>
-        <div class="kpi" style="--kpi-color:var(--green)">
+        <div class="kpi" style="--kpi-color:var(--ok);--kpi-glow:rgba(0,196,106,0.06)">
           <div class="kpi-label">Entregue</div>
           <div class="kpi-value" id="k-entregue">0</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kb-entregue" style="width:0%"></div></div>
         </div>
-        <div class="kpi" style="--kpi-color:var(--yellow)">
+        <div class="kpi" style="--kpi-color:var(--warn);--kpi-glow:rgba(245,166,35,0.06)">
           <div class="kpi-label">Ausente</div>
           <div class="kpi-value" id="k-ausente">0</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kb-ausente" style="width:0%"></div></div>
         </div>
-        <div class="kpi" style="--kpi-color:var(--gray)">
+        <div class="kpi" style="--kpi-color:var(--ghost);--kpi-glow:rgba(91,111,143,0.04)">
           <div class="kpi-label">Outros</div>
           <div class="kpi-value" id="k-outros">0</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kb-outros" style="width:0%"></div></div>
         </div>
       </div>
 
-      <!-- Split grid: table + sidepanel -->
       <div class="split-grid">
-        <!-- Table -->
+        <!-- Tabela -->
         <div>
           <div class="section-header">
             <span class="section-title">Regiões &amp; Agentes</span>
-            <span class="count-pill" id="count-rota">0 agentes em rota</span>
+            <span class="count-pill" id="count-rota">0 em rota</span>
           </div>
           <div class="table-card">
             <div class="table-wrap">
@@ -823,10 +1047,10 @@ td.r span { display: inline-block; min-width: 28px; }
                   <tr>
                     <th>Região / Agente</th>
                     <th>Ger.</th>
-                    <th class="r" title="Em Rota" style="color:var(--red)">Rota</th>
-                    <th class="r" title="Entregue" style="color:var(--green)">Entregue</th>
-                    <th class="r" title="Ausente" style="color:var(--yellow)">Ausente</th>
-                    <th class="r" title="Outros" style="color:var(--gray)">Outros</th>
+                    <th class="r" style="color:var(--rota)">Rota</th>
+                    <th class="r" style="color:var(--ok)">Entregue</th>
+                    <th class="r" style="color:var(--warn)">Ausente</th>
+                    <th class="r" style="color:var(--ghost)">Outros</th>
                   </tr>
                 </thead>
                 <tbody id="main-tbody"></tbody>
@@ -835,8 +1059,8 @@ td.r span { display: inline-block; min-width: 28px; }
           </div>
         </div>
 
-        <!-- Side panels -->
-        <div style="display:flex;flex-direction:column;gap:14px">
+        <!-- Painéis laterais -->
+        <div style="display:flex;flex-direction:column;gap:12px">
           <div class="status-card">
             <div class="card-head"><span class="section-title">Status Geral</span></div>
             <div class="card-body" id="status-list"></div>
@@ -853,10 +1077,10 @@ td.r span { display: inline-block; min-width: 28px; }
     <div class="tab-pane" id="pane-busca">
       <div class="search-hero">
         <h2>Verificar Agente</h2>
-        <p>Digite o código do agente para ver se ainda tem pedidos em aberto.</p>
+        <p>Código do agente — confirma se ainda há pedidos em aberto (uso no WhatsApp: "055 finalizado?").</p>
       </div>
       <div class="search-box">
-        <input type="text" id="busca-cod" placeholder="Ex: 055" inputmode="numeric"
+        <input type="text" id="busca-cod" placeholder="ex: 055" inputmode="numeric"
           onkeydown="if(event.key==='Enter') buscarAgente()">
         <button class="btn-search" onclick="buscarAgente()">Verificar</button>
       </div>
@@ -865,31 +1089,30 @@ td.r span { display: inline-block; min-width: 28px; }
 
     <!-- ══ ABA TEMPO ══ -->
     <div class="tab-pane" id="pane-tempo">
-      <div class="tempo-header">
-        <strong>Tempo em Rota por Agente</strong> — mostra há quantas horas cada agente está com pedidos em aberto, com base na data do histórico mais antigo ainda em rota. Agentes com pouco volume mas muito tempo ficam em destaque.
+      <div class="info-box">
+        <strong>Tempo em Rota por Agente</strong> — horas desde o histórico mais antigo ainda em rota. Agentes com pouco volume mas muito tempo ficam em destaque.
       </div>
 
       <div class="alert-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> &lt; 3h — Normal</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> 3–5h — Atenção</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> 5–8h — Crítico</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div> &gt; 8h — Alerta Máximo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--t-ok)"></div> &lt; 3h — Normal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--t-attn)"></div> 3–5h — Atenção</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--t-crit)"></div> 5–8h — Crítico</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--t-max)"></div> &gt; 8h — Alerta Máximo</div>
       </div>
 
-      <!-- Sub-filtros -->
-      <div class="filters-bar" style="margin-bottom:12px">
-        <select class="filter-select" id="t-gerente" onchange="renderTempo()" style="flex: 1 1 140px">
+      <div class="filters-bar" style="margin-bottom:14px">
+        <select class="filter-select" id="t-gerente" onchange="renderTempo()" style="flex:1 1 140px">
           <option value="">Todos os Gerentes</option>
         </select>
-        <select class="filter-select" id="t-servico" onchange="renderTempo()" style="flex: 1 1 140px">
+        <select class="filter-select" id="t-servico" onchange="renderTempo()" style="flex:1 1 140px">
           <option value="">ML + Shopee</option>
           <option value="ML">Mercado Livre</option>
           <option value="SHOPEE">Shopee</option>
         </select>
-        <select class="filter-select" id="t-sort" onchange="renderTempo()" style="flex: 1 1 140px">
-          <option value="tempo">Ordenar: Mais Tempo</option>
-          <option value="pedidos">Ordenar: Mais Pedidos</option>
-          <option value="alerta">Ordenar: Alerta</option>
+        <select class="filter-select" id="t-sort" onchange="renderTempo()" style="flex:1 1 140px">
+          <option value="tempo">Mais Tempo</option>
+          <option value="pedidos">Mais Pedidos</option>
+          <option value="alerta">Nível de Alerta</option>
         </select>
       </div>
 
@@ -898,11 +1121,11 @@ td.r span { display: inline-block; min-width: 28px; }
 
     <!-- ══ ABA CEP DESTINO ══ -->
     <div class="tab-pane" id="pane-cep">
-      <div class="tempo-header" style="margin-top:14px">
-        <strong>Visão por CEP Destino</strong> — agrupa pedidos pelos 5 primeiros dígitos do CEP (bairro/zona), mostrando concentração de rotas, baixas e problemas por área geográfica.
+      <div class="info-box" style="margin-top:4px;border-left-color:var(--ok)">
+        <strong>Visão por CEP Destino</strong> — pedidos agrupados pelos 5 primeiros dígitos do CEP. Identifica concentração de ausências e entregas por zona geográfica.
       </div>
-      <!-- Sub-filtros CEP -->
-      <div class="filters-bar" style="margin-bottom:12px">
+
+      <div class="filters-bar" style="margin-bottom:14px">
         <select class="filter-select" id="c-gerente" onchange="renderCep()" style="flex:1 1 130px">
           <option value="">Todos os Gerentes</option>
         </select>
@@ -918,26 +1141,26 @@ td.r span { display: inline-block; min-width: 28px; }
           <option value="AUSENTE">Ausente</option>
         </select>
         <select class="filter-select" id="c-sort" onchange="renderCep()" style="flex:1 1 130px">
-          <option value="total">Ordenar: Total</option>
-          <option value="rota">Ordenar: Em Rota</option>
-          <option value="ausente">Ordenar: Ausente</option>
-          <option value="taxa">Ordenar: % Entregue</option>
+          <option value="total">Por Total</option>
+          <option value="rota">Por Em Rota</option>
+          <option value="ausente">Por Ausente</option>
+          <option value="taxa">Por % Entregue</option>
         </select>
       </div>
       <div id="cep-list"></div>
     </div>
 
-    <!-- ══ ABA NOVA PLANILHA ══ -->
+    <!-- ══ ABA ATUALIZAR ══ -->
     <div class="tab-pane" id="pane-nova">
       <div style="display:flex;align-items:center;justify-content:center;min-height:50vh;padding:24px 0">
-        <div style="text-align:center;max-width:360px">
-          <div style="font-size:40px;margin-bottom:16px">📤</div>
-          <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Atualizar Planilha</h2>
-          <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px">Importe um CSV ou Excel novo para atualizar o painel, ou recarregue os dados do Google Sheets.</p>
-          <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
-            <button class="btn-primary" onclick="document.getElementById('file-input2').click()">📁 Importar Arquivo</button>
+        <div style="text-align:center;max-width:340px">
+          <div style="width:64px;height:64px;background:var(--night3);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px">↑</div>
+          <h2 style="font-family:var(--font-data);font-size:17px;font-weight:700;letter-spacing:1px;margin-bottom:10px;color:var(--ink)">Atualizar Dados</h2>
+          <p style="color:var(--ink-dim);font-size:13px;margin-bottom:24px;line-height:1.6">Importe um arquivo novo ou recarregue diretamente do Google Sheets.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;max-width:260px;margin:0 auto">
+            <button class="btn-primary" onclick="document.getElementById('file-input2').click()">Importar Arquivo</button>
             <input type="file" id="file-input2" accept=".csv,.xlsx,.xls" style="display:none">
-            <button class="btn-ghost" style="padding:10px 20px" onclick="reloadSheets()">🔄 Recarregar Google Sheets</button>
+            <button class="btn-ghost" style="padding:10px 20px" onclick="reloadSheets()">Recarregar Google Sheets</button>
           </div>
         </div>
       </div>
@@ -947,7 +1170,7 @@ td.r span { display: inline-block; min-width: 28px; }
 </div><!-- /app -->
 
 <!-- ═══════════════════════════════════════════════════════════
-     SCRIPT
+     SCRIPT — lógica preservada, apenas ajustes de renderização
 ════════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -992,14 +1215,12 @@ function normalizeStatus(row) {
   const ecomFirst = ecom.split('<QL>')[0].trim();
 
   if (serv === 'ML') {
-    // Col F (Historico Ecommerce): se começa com "A CAMINHO" → pedido ainda na rua
     if (ecomFirst.startsWith('A CAMINHO')) return 'EM ROTA';
-    // Caso contrário o pedido foi baixado — status real está em col D (Historico)
     if (hist === 'ENTREGUE') return 'ENTREGUE';
     if (hist === 'AUSENTE') return 'AUSENTE';
     if (hist === 'RECUSADO') return 'RECUSADO';
     if (hist === 'CANCELADO') return 'CANCELADO';
-    if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA'; // fallback Tracken genérico
+    if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
     if (hist === 'DEVOLVIDO') return 'DEVOLVIDO';
     if (hist === 'CEP ERRADO') return 'CEP ERRADO';
     if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
@@ -1016,19 +1237,16 @@ function normalizeStatus(row) {
     if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
     return hist || 'OUTROS';
   }
-  // OUTROS serviços — mesma lógica col D
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
   if (hist === 'ENTREGUE') return 'ENTREGUE';
   if (hist === 'AUSENTE') return 'AUSENTE';
   return hist || 'OUTROS';
 }
 
-// Retorna o status "bruto" da col D para exibição no número do pedido (ML e Shopee igual)
 function rawHistorico(row) {
   return (row['Historico'] || row['Histórico'] || '').trim();
 }
 
-// CEP Destino — col J
 function getCepDestino(row) {
   return (row['Cep Destino'] || row['CEP Destino'] || row['Cep'] || row['CEP'] || '').trim().replace(/\D/g,'');
 }
@@ -1037,19 +1255,14 @@ function getCepPrefixo(row) {
   return cep.slice(0, 5) || '—';
 }
 
-// Parse "DD/MM/YYYY HH:mm" or "DD/MM/YYYY HH:mm:ss" → Date
 function parseDataHist(str) {
   if (!str) return null;
   const s = (str + '').trim();
-  // Try DD/MM/YYYY HH:mm:ss
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (m) {
-    return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
-  }
+  if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
   return null;
 }
 
-// Tempo em horas desde a data mais antiga de um agente em rota
 function horasMaisAntiga(rows) {
   let oldest = null;
   rows.forEach(r => {
@@ -1067,11 +1280,11 @@ function tempoLabel(h) {
 }
 
 function tempoColor(h) {
-  if (h === null) return 'var(--gray)';
-  if (h < 3) return '#22c55e';
-  if (h < 5) return '#f59e0b';
-  if (h < 8) return '#ef4444';
-  return '#a855f7';
+  if (h === null) return 'var(--ghost)';
+  if (h < 3) return 'var(--t-ok)';
+  if (h < 5) return 'var(--t-attn)';
+  if (h < 8) return 'var(--t-crit)';
+  return 'var(--t-max)';
 }
 
 function tempoAlert(h) {
@@ -1083,35 +1296,41 @@ function tempoAlert(h) {
 }
 
 const STATUS_COLORS = {
-  'EM ROTA': 'var(--red)', 'ENTREGUE': 'var(--green)',
-  'AUSENTE': 'var(--yellow)', 'RECUSADO': 'var(--purple)',
-  'CANCELADO': 'var(--gray)', 'OUTROS': 'var(--gray)',
+  'EM ROTA':   'var(--rota)',
+  'ENTREGUE':  'var(--ok)',
+  'AUSENTE':   'var(--warn)',
+  'RECUSADO':  'var(--purple)',
+  'CANCELADO': 'var(--ghost)',
+  'OUTROS':    'var(--ghost)',
 };
 const STATUS_BG = {
-  'EM ROTA': 'rgba(200,16,46,0.18)', 'ENTREGUE': 'rgba(34,197,94,0.15)',
-  'AUSENTE': 'rgba(245,158,11,0.15)', 'RECUSADO': 'rgba(168,85,247,0.15)',
-  'CANCELADO': 'rgba(107,114,128,0.15)', 'OUTROS': 'rgba(107,114,128,0.15)',
+  'EM ROTA':   'var(--rota-d)',
+  'ENTREGUE':  'var(--ok-d)',
+  'AUSENTE':   'var(--warn-d)',
+  'RECUSADO':  'rgba(167,139,250,0.12)',
+  'CANCELADO': 'var(--ghost-d)',
+  'OUTROS':    'var(--ghost-d)',
 };
 
 /* ── FILTERED DATA ── */
 function getFiltered() {
-  const gF = document.getElementById('f-gerente').value;
-  const rF = document.getElementById('f-regiao').value;
-  const sF = document.getElementById('f-status').value;
+  const gF  = document.getElementById('f-gerente').value;
+  const rF  = document.getElementById('f-regiao').value;
+  const sF  = document.getElementById('f-status').value;
   const svF = document.getElementById('f-servico').value;
-  const aF = (document.getElementById('f-agente').value || '').trim().toLowerCase();
+  const aF  = (document.getElementById('f-agente').value || '').trim().toLowerCase();
 
   return rawData.filter(row => {
     const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
-    const g = getGerente(row);
+    const g  = getGerente(row);
     const st = normalizeStatus(row);
     const sv = normalizeServico(row);
     const ag = (row['Agente'] || '').trim().toLowerCase();
-    if (gF && g !== gF) return false;
-    if (rF && reg !== rF) return false;
-    if (sF && st !== sF) return false;
-    if (svF && sv !== svF) return false;
-    if (aF && !ag.includes(aF)) return false;
+    if (gF  && g   !== gF)   return false;
+    if (rF  && reg !== rF)   return false;
+    if (sF  && st  !== sF)   return false;
+    if (svF && sv  !== svF)  return false;
+    if (aF  && !ag.includes(aF)) return false;
     return true;
   });
 }
@@ -1129,12 +1348,10 @@ function populateFilters() {
   rSel.innerHTML = '<option value="">Todas as Regiões</option>';
   regioes.forEach(r => rSel.innerHTML += `<option>${r}</option>`);
 
-  // also tempo tab filters
   const tgSel = document.getElementById('t-gerente');
   tgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
   gerentes.forEach(g => tgSel.innerHTML += `<option>${g}</option>`);
 
-  // also cep tab filters
   const cgSel = document.getElementById('c-gerente');
   if (cgSel) {
     cgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
@@ -1154,66 +1371,74 @@ function clearFilters() {
 function render() {
   const data = getFiltered();
 
-  // KPIs
   let rota=0, entregue=0, ausente=0, outros=0;
   const statusCount = {};
-  const mlCount = {rota:0, entregue:0, ausente:0, outros:0};
+  const mlCount  = {rota:0, entregue:0, ausente:0, outros:0};
   const shopCount = {rota:0, entregue:0, ausente:0, outros:0};
 
   data.forEach(row => {
     const st = normalizeStatus(row);
     const sv = normalizeServico(row);
     statusCount[st] = (statusCount[st] || 0) + 1;
-    if (st === 'EM ROTA') rota++;
+    if (st === 'EM ROTA')       rota++;
     else if (st === 'ENTREGUE') entregue++;
-    else if (st === 'AUSENTE') ausente++;
-    else outros++;
+    else if (st === 'AUSENTE')  ausente++;
+    else                        outros++;
     const bucket = sv === 'ML' ? mlCount : sv === 'SHOPEE' ? shopCount : null;
     if (bucket) {
-      if (st === 'EM ROTA') bucket.rota++;
+      if (st === 'EM ROTA')       bucket.rota++;
       else if (st === 'ENTREGUE') bucket.entregue++;
-      else if (st === 'AUSENTE') bucket.ausente++;
-      else bucket.outros++;
+      else if (st === 'AUSENTE')  bucket.ausente++;
+      else                        bucket.outros++;
     }
   });
 
-  document.getElementById('k-total').textContent = data.length;
-  document.getElementById('k-rota').textContent = rota;
+  const total = data.length;
+  document.getElementById('k-total').textContent    = total;
+  document.getElementById('k-rota').textContent     = rota;
   document.getElementById('k-entregue').textContent = entregue;
-  document.getElementById('k-ausente').textContent = ausente;
-  document.getElementById('k-outros').textContent = outros;
+  document.getElementById('k-ausente').textContent  = ausente;
+  document.getElementById('k-outros').textContent   = outros;
+
+  // KPI bars — proporção do total
+  const pct = v => total > 0 ? Math.round(v / total * 100) : 0;
+  document.getElementById('kb-total').style.width    = '100%';
+  document.getElementById('kb-rota').style.width     = pct(rota) + '%';
+  document.getElementById('kb-entregue').style.width = pct(entregue) + '%';
+  document.getElementById('kb-ausente').style.width  = pct(ausente) + '%';
+  document.getElementById('kb-outros').style.width   = pct(outros) + '%';
 
   // Service strip
   const svFilter = document.getElementById('f-servico').value;
-  const showBoth = !svFilter;
   const strip = document.getElementById('service-strip');
-  if (showBoth) {
+  if (!svFilter) {
     strip.innerHTML = `
       <div class="service-chip">
-        <div class="service-chip-icon">🟡</div>
+        <div class="service-chip-badge chip-ml">🟡</div>
         <div>
           <div class="service-chip-name">Mercado Livre</div>
           <div class="service-chip-val">${mlCount.rota + mlCount.entregue + mlCount.ausente + mlCount.outros}</div>
-          <div class="service-chip-sub">${mlCount.rota} rota · ${mlCount.entregue} ent. · ${mlCount.ausente} aus.</div>
+          <div class="service-chip-sub">${mlCount.rota} rota · ${mlCount.entregue} entregue · ${mlCount.ausente} ausente</div>
         </div>
       </div>
       <div class="service-chip">
-        <div class="service-chip-icon">🟠</div>
+        <div class="service-chip-badge chip-shopee">🟠</div>
         <div>
           <div class="service-chip-name">Shopee</div>
           <div class="service-chip-val">${shopCount.rota + shopCount.entregue + shopCount.ausente + shopCount.outros}</div>
-          <div class="service-chip-sub">${shopCount.rota} rota · ${shopCount.entregue} ent. · ${shopCount.ausente} aus.</div>
+          <div class="service-chip-sub">${shopCount.rota} rota · ${shopCount.entregue} entregue · ${shopCount.ausente} ausente</div>
         </div>
       </div>`;
   } else {
-    const b = svFilter === 'ML' ? mlCount : shopCount;
+    const b    = svFilter === 'ML' ? mlCount : shopCount;
     const icon = svFilter === 'ML' ? '🟡' : '🟠';
     const name = svFilter === 'ML' ? 'Mercado Livre' : 'Shopee';
+    const cls  = svFilter === 'ML' ? 'chip-ml' : 'chip-shopee';
     strip.innerHTML = `
-      <div class="service-chip" style="border-color: ${svFilter==='ML'?'var(--yellow)':'var(--blue)'}; max-width:280px">
-        <div class="service-chip-icon">${icon}</div>
+      <div class="service-chip" style="border-color:${svFilter==='ML'?'rgba(245,166,35,0.3)':'rgba(255,102,0,0.3)'}">
+        <div class="service-chip-badge ${cls}">${icon}</div>
         <div>
-          <div class="service-chip-name">${name} — Filtrado</div>
+          <div class="service-chip-name">${name}</div>
           <div class="service-chip-val">${b.rota + b.entregue + b.ausente + b.outros}</div>
           <div class="service-chip-sub">${b.rota} rota · ${b.entregue} entregue · ${b.ausente} ausente</div>
         </div>
@@ -1221,30 +1446,30 @@ function render() {
   }
 
   // Status list
-  const maxSt = Math.max(...Object.values(statusCount), 1);
+  const maxSt   = Math.max(...Object.values(statusCount), 1);
   const stSorted = Object.entries(statusCount).sort((a,b) => b[1]-a[1]);
   document.getElementById('status-list').innerHTML = stSorted.map(([s, c]) => {
-    const col = STATUS_COLORS[s] || 'var(--gray)';
-    const pct = Math.round(c / maxSt * 100);
+    const col = STATUS_COLORS[s] || 'var(--ghost)';
+    const pct2 = Math.round(c / maxSt * 100);
     return `<div class="status-item">
       <div class="s-name">${s}</div>
-      <div class="s-bar-wrap"><div class="s-bar" style="width:${pct}%;background:${col}"></div></div>
+      <div class="s-bar-wrap"><div class="s-bar" style="width:${pct2}%;background:${col}"></div></div>
       <div class="s-count" style="color:${col}">${c}</div>
     </div>`;
-  }).join('') || '<div style="padding:16px 14px;color:var(--text-dim);font-size:12px">Sem dados</div>';
+  }).join('') || '<div style="padding:16px 14px;color:var(--ink-dim);font-size:12px">Sem dados</div>';
 
-  // Region/Agent table
+  // Tabela região/agente
   const regions = {};
   data.forEach(row => {
     const reg = (row['Regiao Destino'] || row['Região Destino'] || 'SEM REGIÃO').trim().toUpperCase();
-    const ag = (row['Agente'] || 'SEM AGENTE').trim();
-    const st = normalizeStatus(row);
+    const ag  = (row['Agente'] || 'SEM AGENTE').trim();
+    const st  = normalizeStatus(row);
     if (!regions[reg]) regions[reg] = {};
     if (!regions[reg][ag]) regions[reg][ag] = {rota:0,entregue:0,ausente:0,outros:0};
-    if (st==='EM ROTA') regions[reg][ag].rota++;
+    if (st==='EM ROTA')       regions[reg][ag].rota++;
     else if (st==='ENTREGUE') regions[reg][ag].entregue++;
-    else if (st==='AUSENTE') regions[reg][ag].ausente++;
-    else regions[reg][ag].outros++;
+    else if (st==='AUSENTE')  regions[reg][ag].ausente++;
+    else                       regions[reg][ag].outros++;
   });
 
   let agentesEmRota = 0;
@@ -1252,7 +1477,7 @@ function render() {
   tbody.innerHTML = '';
 
   Object.keys(regions).sort().forEach(reg => {
-    const ger = respMap[reg] || '—';
+    const ger    = respMap[reg] || '—';
     const agents = regions[reg];
     const agList = Object.keys(agents).sort((a,b) => {
       const ta = agents[a].rota + agents[a].ausente;
@@ -1262,8 +1487,8 @@ function render() {
 
     let rR=0, eR=0, aR=0, oR=0;
     agList.forEach(ag => {
-      rR += agents[ag].rota; eR += agents[ag].entregue;
-      aR += agents[ag].ausente; oR += agents[ag].outros;
+      rR += agents[ag].rota;     eR += agents[ag].entregue;
+      aR += agents[ag].ausente;  oR += agents[ag].outros;
       if (agents[ag].rota > 0) agentesEmRota++;
     });
 
@@ -1271,12 +1496,12 @@ function render() {
     const rRow = document.createElement('tr');
     rRow.className = 'row-region' + (collapsed ? ' collapsed' : '');
     rRow.innerHTML = `
-      <td><span class="toggle-icon">▼</span>${reg}</td>
+      <td><span class="toggle-icon">▾</span>${reg}</td>
       <td><span class="badge-g">${ger}</span></td>
-      <td class="r" style="color:var(--red)"><span>${rR||''}</span></td>
-      <td class="r" style="color:var(--green)"><span>${eR||''}</span></td>
-      <td class="r" style="color:var(--yellow)"><span>${aR||''}</span></td>
-      <td class="r" style="color:var(--gray)"><span>${oR||''}</span></td>`;
+      <td class="r" style="color:var(--rota)"><span>${rR||''}</span></td>
+      <td class="r" style="color:var(--ok)"><span>${eR||''}</span></td>
+      <td class="r" style="color:var(--warn)"><span>${aR||''}</span></td>
+      <td class="r" style="color:var(--ghost)"><span>${oR||''}</span></td>`;
     rRow.addEventListener('click', () => {
       collapsedRegions.has(reg) ? collapsedRegions.delete(reg) : collapsedRegions.add(reg);
       render();
@@ -1285,24 +1510,25 @@ function render() {
 
     if (!collapsed) {
       agList.forEach(ag => {
-        const s = agents[ag];
-        const cod = agentCode(ag);
+        const s    = agents[ag];
+        const cod  = agentCode(ag);
         const nome = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
         const svTag = (() => {
           const rows = data.filter(r => (r['Agente']||'').trim() === ag);
-          const svs = [...new Set(rows.map(r => normalizeServico(r)))];
-          return svs.map(sv => sv === 'ML' ? '<span class="tag tag-ml">ML</span>' :
-            sv === 'SHOPEE' ? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
+          const svs  = [...new Set(rows.map(r => normalizeServico(r)))];
+          return svs.map(sv =>
+            sv === 'ML'    ? '<span class="tag tag-ml">ML</span>' :
+            sv === 'SHOPEE'? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
         })();
         const aRow = document.createElement('tr');
         aRow.className = 'row-agent';
         aRow.innerHTML = `
-          <td><span style="font-size:11px;color:var(--red);font-weight:700;margin-right:5px;font-family:var(--font-display)">${cod}</span>${nome} ${svTag}</td>
+          <td><span style="font-family:var(--font-data);color:var(--red);font-size:11px;font-weight:700;margin-right:6px">${cod}</span>${nome} ${svTag}</td>
           <td></td>
-          <td class="r" style="color:var(--red)"><span>${s.rota||''}</span></td>
-          <td class="r" style="color:var(--green)"><span>${s.entregue||''}</span></td>
-          <td class="r" style="color:var(--yellow)"><span>${s.ausente||''}</span></td>
-          <td class="r" style="color:var(--gray)"><span>${s.outros||''}</span></td>`;
+          <td class="r" style="color:var(--rota)"><span>${s.rota||''}</span></td>
+          <td class="r" style="color:var(--ok)"><span>${s.entregue||''}</span></td>
+          <td class="r" style="color:var(--warn)"><span>${s.ausente||''}</span></td>
+          <td class="r" style="color:var(--ghost)"><span>${s.outros||''}</span></td>`;
         tbody.appendChild(aRow);
       });
     }
@@ -1317,44 +1543,41 @@ function render() {
     const st = normalizeStatus(row);
     if (!agTotals[ag]) agTotals[ag] = {open:0, rota:0, ent:0, aus:0};
     if (st==='EM ROTA' || st==='AUSENTE') agTotals[ag].open++;
-    if (st==='EM ROTA') agTotals[ag].rota++;
+    if (st==='EM ROTA')  agTotals[ag].rota++;
     if (st==='ENTREGUE') agTotals[ag].ent++;
-    if (st==='AUSENTE') agTotals[ag].aus++;
+    if (st==='AUSENTE')  agTotals[ag].aus++;
   });
-  const topAg = Object.entries(agTotals)
+  const topAg  = Object.entries(agTotals)
     .filter(([,v]) => v.open >= 3)
     .sort((a,b) => b[1].open - a[1].open)
     .slice(0, 12);
   const maxAg = topAg[0]?.[1].open || 1;
   document.getElementById('agents-list').innerHTML = topAg.map(([ag, v], i) => {
-    const pct = Math.round(v.open / maxAg * 100);
-    const cod = agentCode(ag);
-    const nome = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
+    const pct2  = Math.round(v.open / maxAg * 100);
+    const cod   = agentCode(ag);
+    const nome  = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
     return `<div class="agent-item">
       <div class="a-rank">${i+1}</div>
       <div class="a-name" title="${ag}"><span class="a-cod">${cod}</span> ${nome}</div>
-      <div class="a-bar-wrap"><div class="a-bar" style="width:${pct}%"></div></div>
+      <div class="a-bar-wrap"><div class="a-bar" style="width:${pct2}%"></div></div>
       <div class="a-count">${v.open}</div>
     </div>`;
-  }).join('') || '<div style="padding:16px 14px;color:var(--text-dim);font-size:12px;text-align:center">Nenhum agente com 3+ pedidos em aberto</div>';
+  }).join('') || '<div style="padding:16px 14px;color:var(--ink-dim);font-size:12px;text-align:center">Nenhum com 3+ pedidos em aberto</div>';
 }
 
 /* ── RENDER TEMPO ── */
 function renderTempo() {
-  const gF = document.getElementById('t-gerente').value;
-  const svF = document.getElementById('t-servico').value;
+  const gF   = document.getElementById('t-gerente').value;
+  const svF  = document.getElementById('t-servico').value;
   const sort = document.getElementById('t-sort').value;
 
-  // Only em rota rows
   const emRota = rawData.filter(r => {
-    const st = normalizeStatus(r);
-    if (st !== 'EM ROTA') return false;
-    if (gF && getGerente(r) !== gF) return false;
+    if (normalizeStatus(r) !== 'EM ROTA') return false;
+    if (gF  && getGerente(r) !== gF)      return false;
     if (svF && normalizeServico(r) !== svF) return false;
     return true;
   });
 
-  // Group by agent
   const byAgent = {};
   emRota.forEach(r => {
     const ag = (r['Agente'] || 'SEM AGENTE').trim();
@@ -1362,43 +1585,43 @@ function renderTempo() {
     byAgent[ag].push(r);
   });
 
-  // Compute stats
   let agents = Object.entries(byAgent).map(([ag, rows]) => {
-    const horas = horasMaisAntiga(rows);
-    const svs = [...new Set(rows.map(r => normalizeServico(r)))];
+    const horas   = horasMaisAntiga(rows);
+    const svs     = [...new Set(rows.map(r => normalizeServico(r)))];
     const gerente = getGerente(rows[0]);
     return { ag, rows, horas, qtd: rows.length, svs, gerente };
   });
 
-  if (sort === 'tempo') agents.sort((a,b) => (b.horas||0) - (a.horas||0));
+  if (sort === 'tempo')   agents.sort((a,b) => (b.horas||0) - (a.horas||0));
   else if (sort === 'pedidos') agents.sort((a,b) => b.qtd - a.qtd);
   else agents.sort((a,b) => {
-    const alertScore = h => h === null ? 0 : h < 3 ? 0 : h < 5 ? 1 : h < 8 ? 2 : 3;
-    return alertScore(b.horas) - alertScore(a.horas);
+    const sc = h => h===null?0: h<3?0: h<5?1: h<8?2:3;
+    return sc(b.horas) - sc(a.horas);
   });
 
   const maxH = Math.max(...agents.map(a => a.horas || 0), 1);
-
   const container = document.getElementById('tempo-list');
+
   if (!agents.length) {
-    container.innerHTML = '<div class="empty"><h3>Sem dados em rota</h3><p>Carregue uma planilha com pedidos em rota para ver o tempo.</p></div>';
+    container.innerHTML = '<div class="empty"><h3>Sem dados em rota</h3><p>Carregue uma planilha com pedidos em rota.</p></div>';
     return;
   }
 
   container.innerHTML = `<div class="tempo-card">${agents.map((a, i) => {
-    const cod = agentCode(a.ag);
+    const cod  = agentCode(a.ag);
     const nome = a.ag.replace(/^\d+\s*[-–]\s*/, '') || a.ag;
-    const col = tempoColor(a.horas);
-    const pct = a.horas ? Math.round(a.horas / maxH * 100) : 0;
-    const svTags = a.svs.map(sv => sv === 'ML' ? '<span class="tag tag-ml">ML</span>' : sv === 'SHOPEE' ? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
-
+    const col  = tempoColor(a.horas);
+    const pct  = a.horas ? Math.round(a.horas / maxH * 100) : 0;
+    const svTags = a.svs.map(sv =>
+      sv==='ML'    ? '<span class="tag tag-ml">ML</span>' :
+      sv==='SHOPEE'? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
     return `<div class="tempo-agent-row" onclick="abrirDetalhesTempo('${a.ag.replace(/'/g,"\\'")}')">
       <div class="t-rank">${i+1}</div>
       <div class="t-info">
-        <div class="t-name"><span style="font-family:var(--font-display);color:var(--red);font-size:12px;font-weight:700;margin-right:5px">${cod}</span>${nome} ${svTags}</div>
+        <div class="t-name"><span style="font-family:var(--font-data);color:var(--red);font-size:12px;font-weight:700;margin-right:6px">${cod}</span>${nome} ${svTags}</div>
         <div class="t-meta">
-          <span style="color:var(--text-dim)">Ger: ${a.gerente||'—'}</span>
-          <span>${a.qtd} pedido${a.qtd!==1?'s':''} em rota</span>
+          <span>Ger: ${a.gerente||'—'}</span>
+          <span>${a.qtd} pedido${a.qtd!==1?'s':''}</span>
         </div>
       </div>
       <div class="t-time-bar-wrap">
@@ -1412,7 +1635,6 @@ function renderTempo() {
 }
 
 function abrirDetalhesTempo(ag) {
-  // Switch to busca tab and search
   document.getElementById('busca-cod').value = agentCode(ag);
   switchTab('busca');
   buscarAgente();
@@ -1420,7 +1642,7 @@ function abrirDetalhesTempo(ag) {
 
 /* ── BUSCA AGENTE ── */
 function buscarAgente() {
-  const cod = document.getElementById('busca-cod').value.trim();
+  const cod    = document.getElementById('busca-cod').value.trim();
   const result = document.getElementById('busca-result');
   if (!cod) return;
   if (!rawData.length) {
@@ -1430,34 +1652,36 @@ function buscarAgente() {
 
   const rows = rawData.filter(r => agentCode(r['Agente'] || '') === cod);
   if (!rows.length) {
-    result.innerHTML = `<div class="no-result">Nenhum agente encontrado com código <strong>${cod}</strong> na planilha atual.</div>`;
+    result.innerHTML = `<div class="no-result">Nenhum agente encontrado com código <strong>${cod}</strong>.</div>`;
     return;
   }
 
-  const agNome = (rows[0]['Agente'] || '').trim().replace(/^\d+\s*[-–]\s*/, '');
-  const reg = (rows[0]['Regiao Destino'] || rows[0]['Região Destino'] || '').trim().toUpperCase();
+  const agNome  = (rows[0]['Agente'] || '').trim().replace(/^\d+\s*[-–]\s*/, '');
+  const reg     = (rows[0]['Regiao Destino'] || rows[0]['Região Destino'] || '').trim().toUpperCase();
   const gerente = getGerente(rows[0]);
-  const svs = [...new Set(rows.map(r => normalizeServico(r)))];
+  const svs     = [...new Set(rows.map(r => normalizeServico(r)))];
 
   let rota=0, entregue=0, ausente=0, outros=0;
   rows.forEach(r => {
     const st = normalizeStatus(r);
-    if (st==='EM ROTA') rota++;
+    if (st==='EM ROTA')       rota++;
     else if (st==='ENTREGUE') entregue++;
-    else if (st==='AUSENTE') ausente++;
-    else outros++;
+    else if (st==='AUSENTE')  ausente++;
+    else                       outros++;
   });
 
   const totalAberto = rota + ausente;
-  const svTagsHtml = svs.map(sv => sv==='ML'?'<span class="tag tag-ml">Mercado Livre</span>':sv==='SHOPEE'?'<span class="tag tag-shopee">Shopee</span>':'').join(' ');
+  const svTagsHtml  = svs.map(sv =>
+    sv==='ML'    ? '<span class="tag tag-ml">Mercado Livre</span>' :
+    sv==='SHOPEE'? '<span class="tag tag-shopee">Shopee</span>' : '').join(' ');
 
-  // Pedidos list
   const pedidosHtml = rows.map(r => {
-    const st = normalizeStatus(r);
-    const num = (r['Remessa'] || r['Nº Pedido'] || r['N° Pedido'] || Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—');
+    const st  = normalizeStatus(r);
+    const num = (r['Remessa'] || r['Nº Pedido'] || r['N° Pedido'] ||
+      Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—');
     const data = r['Data Historico'] || r['Data Histórico'] || '';
-    const col = STATUS_COLORS[st] || 'var(--gray)';
-    const bg = STATUS_BG[st] || 'rgba(107,114,128,0.12)';
+    const col  = STATUS_COLORS[st] || 'var(--ghost)';
+    const bg   = STATUS_BG[st]     || 'var(--ghost-d)';
     return `<div class="pedido-row">
       <div class="pedido-num">${num}</div>
       <div class="pedido-status" style="background:${bg};color:${col}">${st}</div>
@@ -1466,59 +1690,57 @@ function buscarAgente() {
   }).join('');
 
   const horasEmRota = horasMaisAntiga(rows.filter(r => normalizeStatus(r)==='EM ROTA'));
-  const tempoInfo = horasEmRota !== null
+  const tempoInfo   = horasEmRota !== null
     ? `<span>⏱ ${tempoLabel(horasEmRota)} em rota ${tempoAlert(horasEmRota)}</span>`
     : '';
 
   const finalizadoBanner = totalAberto === 0 ? `
     <div class="finalizado-banner">
       <div class="icon">✅</div>
-      <h3>Agente Finalizado!</h3>
-      <p>Todos os ${rows.length} pedidos foram baixados (entregues, ausentes ou outros). Não há pedidos em rota.</p>
+      <h3>Agente Finalizado</h3>
+      <p>Todos os ${rows.length} pedidos foram baixados. Nenhum em rota.</p>
     </div>` : '';
 
   result.innerHTML = `
     <div class="agent-result-card">
       <div class="agent-result-header">
-        <div class="agent-result-name">
-          <span style="color:var(--red);font-size:20px">${cod}</span>
-          — ${agNome}
-        </div>
+        <div class="agent-result-name"><em>${cod}</em> — ${agNome}</div>
         <div class="agent-result-meta">
           <span>📍 ${reg||'—'}</span>
-          <span>👤 Ger: ${gerente||'—'}</span>
+          <span>Ger: ${gerente||'—'}</span>
           ${svTagsHtml}
           ${tempoInfo}
         </div>
       </div>
       <div class="agent-status-grid">
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--red)">${rota}</div>
+          <div class="status-tile-val" style="color:var(--rota)">${rota}</div>
           <div class="status-tile-label">Em Rota</div>
         </div>
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--green)">${entregue}</div>
+          <div class="status-tile-val" style="color:var(--ok)">${entregue}</div>
           <div class="status-tile-label">Entregue</div>
         </div>
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--yellow)">${ausente}</div>
+          <div class="status-tile-val" style="color:var(--warn)">${ausente}</div>
           <div class="status-tile-label">Ausente</div>
         </div>
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--gray)">${outros}</div>
+          <div class="status-tile-val" style="color:var(--ghost)">${outros}</div>
           <div class="status-tile-label">Outros</div>
         </div>
       </div>
       ${finalizadoBanner}
-      <div class="card-head" style="margin-top:0">
+      <div class="card-head">
         <span class="section-title">${rows.length} Pedidos</span>
-        ${totalAberto > 0 ? `<span class="count-pill">${totalAberto} em aberto</span>` : '<span style="color:var(--green);font-size:11px;font-weight:700">✓ TUDO BAIXADO</span>'}
+        ${totalAberto > 0
+          ? `<span class="count-pill">${totalAberto} em aberto</span>`
+          : '<span style="color:var(--ok);font-size:11px;font-weight:700;font-family:var(--font-data)">✓ TUDO BAIXADO</span>'}
       </div>
       <div class="pedidos-list">${pedidosHtml}</div>
     </div>`;
 }
 
-/* ── TAB SWITCH ── */
 /* ── RENDER CEP DESTINO ── */
 function renderCep() {
   const gerFil  = (document.getElementById('c-gerente')?.value || '').trim().toUpperCase();
@@ -1526,47 +1748,41 @@ function renderCep() {
   const stFil   = (document.getElementById('c-status')?.value  || '').trim().toUpperCase();
   const sortBy  = document.getElementById('c-sort')?.value || 'total';
 
-  // Filter base data
   let base = rawData.filter(r => {
-    if (gerFil  && getGerente(r).toUpperCase() !== gerFil)  return false;
-    if (servFil && normalizeServico(r) !== servFil)          return false;
-    if (stFil   && normalizeStatus(r)  !== stFil)            return false;
+    if (gerFil  && getGerente(r).toUpperCase() !== gerFil) return false;
+    if (servFil && normalizeServico(r) !== servFil)         return false;
+    if (stFil   && normalizeStatus(r)  !== stFil)           return false;
     return true;
   });
 
-  // Group by 5-digit CEP prefix
   const groups = {};
   base.forEach(r => {
     const prefix = getCepPrefixo(r);
     if (!groups[prefix]) groups[prefix] = { rota:0, entregue:0, ausente:0, outros:{}, pedidos:[] };
-    const st = normalizeStatus(r);
+    const st     = normalizeStatus(r);
     const pedido = r['Numero Pedido'] || r['Número Pedido'] || r['Pedido'] || r['Remessa'] || r['NF'] || '';
     groups[prefix].pedidos.push({ st, pedido, hist: rawHistorico(r), serv: normalizeServico(r) });
     if (st === 'EM ROTA')       groups[prefix].rota++;
     else if (st === 'ENTREGUE') groups[prefix].entregue++;
     else if (st === 'AUSENTE')  groups[prefix].ausente++;
-    else {
-      groups[prefix].outros[st] = (groups[prefix].outros[st] || 0) + 1;
-    }
+    else groups[prefix].outros[st] = (groups[prefix].outros[st] || 0) + 1;
   });
 
-  // Convert to array
   let rows = Object.entries(groups).map(([prefix, d]) => {
     const outrosTotal = Object.values(d.outros).reduce((a,b) => a+b, 0);
     const total = d.rota + d.entregue + d.ausente + outrosTotal;
-    const taxa = total > 0 ? Math.round(d.entregue / total * 100) : 0;
+    const taxa  = total > 0 ? Math.round(d.entregue / total * 100) : 0;
     return { prefix, ...d, outrosTotal, total, taxa };
   });
 
-  // Sort
-  if (sortBy === 'rota')    rows.sort((a,b) => b.rota - a.rota);
+  if (sortBy === 'rota')         rows.sort((a,b) => b.rota - a.rota);
   else if (sortBy === 'ausente') rows.sort((a,b) => b.ausente - a.ausente);
   else if (sortBy === 'taxa')    rows.sort((a,b) => b.taxa - a.taxa);
   else                           rows.sort((a,b) => b.total - a.total);
 
   const el = document.getElementById('cep-list');
   if (!rows.length) {
-    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim)">Nenhum dado para os filtros selecionados</div>';
+    el.innerHTML = '<div class="empty"><h3>Sem dados</h3><p>Nenhum dado para os filtros selecionados.</p></div>';
     return;
   }
 
@@ -1575,59 +1791,51 @@ function renderCep() {
   const maxAusente  = Math.max(...rows.map(r => r.ausente), 1);
   const maxOutros   = Math.max(...rows.map(r => r.outrosTotal), 1);
 
-  el.innerHTML = rows.map(row => {
-    const taxaCls = row.taxa >= 80 ? 'ok' : row.taxa >= 50 ? 'warn' : 'bad';
+  function pedidosList(arr, maxShow) {
+    if (!arr.length) return '';
+    const shown = arr.slice(0, maxShow).filter(p => p).join(', ');
+    const extra = arr.length > maxShow ? ` +${arr.length - maxShow}` : '';
+    return shown ? `<div class="cep-pedidos">${shown}${extra}</div>` : '';
+  }
 
-    // Build detail lines for outros breakdown
-    const outrosDetail = Object.entries(row.outros)
-      .sort((a,b) => b[1]-a[1])
-      .map(([k,v]) => `<span style="font-size:10px;color:var(--text-dim);margin-right:10px">${k}: <b style="color:var(--text)">${v}</b></span>`)
-      .join('');
+  el.innerHTML = `<div class="cep-list-wrap">${rows.map(row => {
+    const taxaCls   = row.taxa >= 80 ? 'ok' : row.taxa >= 50 ? 'warn' : 'bad';
+    const outrosDetail = Object.entries(row.outros).sort((a,b)=>b[1]-a[1])
+      .map(([k,v]) => `<span style="margin-right:8px;color:var(--ink-dim)">${k}: <strong style="color:var(--ink)">${v}</strong></span>`).join('');
 
-    // Pedido numbers per status (show up to 8, then "…+N")
-    function pedidosList(arr, maxShow) {
-      if (!arr.length) return '';
-      const shown = arr.slice(0, maxShow).filter(p => p).join(', ');
-      const extra = arr.length > maxShow ? ` <span style="color:var(--text-dim)">+${arr.length - maxShow}</span>` : '';
-      return shown ? `<div style="font-size:10px;color:var(--text-dim);margin-top:2px;word-break:break-all">${shown}${extra}</div>` : '';
-    }
+    const rotaPeds   = row.pedidos.filter(p => p.st === 'EM ROTA').map(p => p.pedido);
+    const entPeds    = row.pedidos.filter(p => p.st === 'ENTREGUE').map(p => p.pedido);
+    const ausPeds    = row.pedidos.filter(p => p.st === 'AUSENTE').map(p => p.pedido);
+    const outrosPeds = row.pedidos.filter(p => !['EM ROTA','ENTREGUE','AUSENTE'].includes(p.st)).map(p => p.pedido);
 
-    const rotaPeds    = row.pedidos.filter(p => p.st === 'EM ROTA').map(p => p.pedido);
-    const entPeds     = row.pedidos.filter(p => p.st === 'ENTREGUE').map(p => p.pedido);
-    const ausPeds     = row.pedidos.filter(p => p.st === 'AUSENTE').map(p => p.pedido);
-    const outrosPeds  = row.pedidos.filter(p => p.st !== 'EM ROTA' && p.st !== 'ENTREGUE' && p.st !== 'AUSENTE').map(p => p.pedido);
-
-    return `<div class="cep-row" style="flex-wrap:wrap;gap:10px">
+    return `<div class="cep-row">
       <div class="cep-prefix">${row.prefix}</div>
-      <div class="cep-bars" style="flex:1;min-width:160px">
+      <div class="cep-bars">
         ${row.rota > 0 ? `
         <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--blue)">EM ROTA</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.rota/maxRota*100)}%;background:var(--blue)"></div></div>
-          <span class="cep-bar-val" style="color:var(--blue)">${row.rota}</span>
-        </div>
-        ${pedidosList(rotaPeds, 6)}` : ''}
+          <span class="cep-bar-label" style="color:var(--rota)">EM ROTA</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.rota/maxRota*100)}%;background:var(--rota)"></div></div>
+          <span class="cep-bar-val" style="color:var(--rota)">${row.rota}</span>
+        </div>${pedidosList(rotaPeds, 6)}` : ''}
         ${row.entregue > 0 ? `
         <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--green)">ENTREGUE</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.entregue/maxEntregue*100)}%;background:var(--green)"></div></div>
-          <span class="cep-bar-val" style="color:var(--green)">${row.entregue}</span>
-        </div>
-        ${pedidosList(entPeds, 4)}` : ''}
+          <span class="cep-bar-label" style="color:var(--ok)">ENTREGUE</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.entregue/maxEntregue*100)}%;background:var(--ok)"></div></div>
+          <span class="cep-bar-val" style="color:var(--ok)">${row.entregue}</span>
+        </div>${pedidosList(entPeds, 4)}` : ''}
         ${row.ausente > 0 ? `
         <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--red)">AUSENTE</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.ausente/maxAusente*100)}%;background:var(--red)"></div></div>
-          <span class="cep-bar-val" style="color:var(--red)">${row.ausente}</span>
-        </div>
-        ${pedidosList(ausPeds, 4)}` : ''}
+          <span class="cep-bar-label" style="color:var(--warn)">AUSENTE</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.ausente/maxAusente*100)}%;background:var(--warn)"></div></div>
+          <span class="cep-bar-val" style="color:var(--warn)">${row.ausente}</span>
+        </div>${pedidosList(ausPeds, 4)}` : ''}
         ${row.outrosTotal > 0 ? `
         <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--yellow)">OUTROS</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.outrosTotal/maxOutros*100)}%;background:var(--yellow)"></div></div>
-          <span class="cep-bar-val" style="color:var(--yellow)">${row.outrosTotal}</span>
+          <span class="cep-bar-label" style="color:var(--ghost)">OUTROS</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.outrosTotal/maxOutros*100)}%;background:var(--ghost)"></div></div>
+          <span class="cep-bar-val" style="color:var(--ghost)">${row.outrosTotal}</span>
         </div>
-        ${outrosDetail ? `<div style="margin-top:3px">${outrosDetail}</div>` : ''}
+        ${outrosDetail ? `<div style="margin-top:3px;font-size:10px">${outrosDetail}</div>` : ''}
         ${pedidosList(outrosPeds, 4)}` : ''}
       </div>
       <div class="cep-stats">
@@ -1635,9 +1843,10 @@ function renderCep() {
         <div class="cep-taxa ${taxaCls}">${row.taxa}% ENT</div>
       </div>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
 }
 
+/* ── SWITCH TAB ── */
 function switchTab(id) {
   activeTab = id;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1647,18 +1856,16 @@ function switchTab(id) {
   const idx = ['operacional','busca','tempo','cep','nova'].indexOf(id);
   if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
   if (id === 'tempo') renderTempo();
-  if (id === 'cep') renderCep();
+  if (id === 'cep')   renderCep();
 }
 
 /* ── LOAD DATA ── */
 function dataDoArquivo(data) {
-  // Pega a Data Histórico mais recente dentre todos os registros
   let latest = null;
   data.forEach(r => {
     const d = parseDataHist(r['Data Historico'] || r['Data Histórico']);
     if (d && (!latest || d > latest)) latest = d;
   });
-  if (!latest) return null;
   return latest;
 }
 
@@ -1683,14 +1890,14 @@ async function autoLoadFromSheets() {
     const resp = await fetch(SHEETS_URL);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const csv = await resp.text();
-    const wb = XLSX.read(csv, {type:'string'});
-    const ws = wb.Sheets[wb.SheetNames[0]];
+    const wb  = XLSX.read(csv, {type:'string'});
+    const ws  = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {defval:''});
     if (!data.length) throw new Error('Vazio');
     loadData(data);
   } catch(e) {
-    status.textContent = '⚠️ Erro ao conectar. Importe o CSV manualmente.';
-    status.style.color = 'var(--yellow)';
+    status.textContent = '⚠️ Erro ao conectar. Importe o arquivo manualmente.';
+    status.style.color = 'var(--warn)';
   }
 }
 
@@ -1702,7 +1909,7 @@ async function reloadSheets() {
 
 function processFile(file) {
   const reader = new FileReader();
-  const isCSV = file.name.toLowerCase().endsWith('.csv');
+  const isCSV  = file.name.toLowerCase().endsWith('.csv');
   reader.onload = e => {
     try {
       const wb = isCSV
@@ -1711,21 +1918,25 @@ function processFile(file) {
       const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
       loadData(data);
       switchTab('operacional');
-    } catch(err) { alert('Erro: ' + err.message); }
+    } catch(err) { alert('Erro ao processar arquivo: ' + err.message); }
   };
   isCSV ? reader.readAsBinaryString(file) : reader.readAsArrayBuffer(file);
 }
 
-/* ── EVENTS ── */
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
+/* ── EVENTOS ── */
+const dropZone  = document.getElementById('drop-zone');
+const fileInput  = document.getElementById('file-input');
 const fileInput2 = document.getElementById('file-input2');
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); processFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', e => { if(e.target.files[0]) processFile(e.target.files[0]); });
-fileInput2.addEventListener('change', e => { if(e.target.files[0]) processFile(e.target.files[0]); });
+dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('dragover'); processFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',   e => { if(e.target.files[0]) processFile(e.target.files[0]); });
+fileInput2.addEventListener('change',  e => { if(e.target.files[0]) processFile(e.target.files[0]); });
+
+dropZone.addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') fileInput.click();
+});
 
 autoLoadFromSheets();
 </script>
