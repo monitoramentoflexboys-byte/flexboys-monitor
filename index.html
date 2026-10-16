@@ -1095,12 +1095,28 @@ td.r span { display: inline-block; min-width: 24px; }
         <strong>Tempo em Rota por Agente</strong> — horas desde o histórico mais antigo ainda em rota. Agentes com pouco volume mas muito tempo ficam em destaque.
       </div>
 
-      <div class="alert-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--t-ok)"></div> &lt; 2h — Normal</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--t-attn)"></div> 2–3.5h — Atenção</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--t-crit)"></div> 3.5–5h — Crítico</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--t-max)"></div> &gt; 5h — Alerta Máximo</div>
-        <div class="legend-item" style="color:var(--ink-dim);font-size:10px;opacity:0.7">⏰ Saída ~17:30 · Corte ML 21h · Fim 23h</div>
+      <div class="alert-legend" style="flex-wrap:wrap;gap:8px;padding:10px 14px">
+        <div style="width:100%;font-size:10px;color:var(--ink-dim);letter-spacing:0.5px;margin-bottom:2px">TEMPO EM ROTA — O número exibido é a quantidade de pedidos do agente. A cor indica há quanto tempo o registro mais antigo está em rota:</div>
+        <div class="legend-item" style="background:rgba(0,196,106,0.12);border:1px solid rgba(0,196,106,0.25);padding:5px 10px;border-radius:6px;font-size:11px;color:#00C46A;gap:7px">
+          <span style="font-size:15px">🟢</span>
+          <div><strong style="font-size:12px">Menos de 2h</strong><br><span style="font-size:10px;color:var(--ink-dim)">Dentro do prazo normal</span></div>
+        </div>
+        <div class="legend-item" style="background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.25);padding:5px 10px;border-radius:6px;font-size:11px;color:#F5A623;gap:7px">
+          <span style="font-size:15px">🟡</span>
+          <div><strong style="font-size:12px">2h a 3h30</strong><br><span style="font-size:10px;color:var(--ink-dim)">Verificar se está avançando</span></div>
+        </div>
+        <div class="legend-item" style="background:rgba(255,68,68,0.12);border:1px solid rgba(255,68,68,0.25);padding:5px 10px;border-radius:6px;font-size:11px;color:#FF4444;gap:7px">
+          <span style="font-size:15px">🔴</span>
+          <div><strong style="font-size:12px">3h30 a 5h</strong><br><span style="font-size:10px;color:var(--ink-dim)">Acionar o agente — risco de atraso</span></div>
+        </div>
+        <div class="legend-item" style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.25);padding:5px 10px;border-radius:6px;font-size:11px;color:#A78BFA;gap:7px">
+          <span style="font-size:15px">🟣</span>
+          <div><strong style="font-size:12px">Acima de 5h</strong><br><span style="font-size:10px;color:var(--ink-dim)">Alerta máximo — escalar para gestão</span></div>
+        </div>
+        <div class="legend-item" style="background:rgba(91,111,143,0.1);border:1px solid rgba(91,111,143,0.2);padding:5px 10px;border-radius:6px;font-size:10px;color:var(--ink-mid);gap:7px;align-items:center">
+          <span style="font-size:13px">⏰</span>
+          <span>Saída ~17h30 · Corte Mercado Livre 21h · Encerramento 23h</span>
+        </div>
       </div>
 
       <div class="filters-bar" style="margin-bottom:14px">
@@ -2013,7 +2029,7 @@ function loadData(data, label, snapTime) {
 // ══ CONFIGURAÇÃO: GID da aba Controle ══
 // Para encontrar o gid: abra o Google Sheets → clique na aba "Controle" →
 // veja a URL: ...#gid=XXXXXXXX — copie o número e cole em SHEETS_CONTROLE_GID
-const SHEETS_CONTROLE_GID = "1791562235"; // ← atualize com o gid real da aba Controle
+const SHEETS_CONTROLE_GID = "1344066483"; // aba Controle
 const SHEETS_BASE_ID = "2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI";
 const SHEETS_CONTROLE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEETS_BASE_ID}/pub?gid=${SHEETS_CONTROLE_GID}&single=true&output=csv`;
 
@@ -2040,6 +2056,9 @@ async function fetchSnapTime() {
     const row2 = parseCSVLine(linhas[1]);
     const val  = (row2[1] || '').trim(); // coluna B
     if (!val) return null;
+    // Valida formato esperado: dd/mm/aaaa hh:mm ou dd/mm/aaaa
+    // Se não bater, é HTML de erro do Google Sheets (gid errado)
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)) return null;
     return val.slice(0, 16); // "16/10/2026 13:30"
   } catch(e) {
     return null;
