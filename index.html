@@ -1076,7 +1076,8 @@ td.r span { display: inline-block; min-width: 24px; }
 
     <!-- ══ ABA BUSCA ══ -->
     <div class="tab-pane" id="pane-busca">
-      <div class="search-hero">
+      <div class="search-hero" style="position:relative">
+        <button id="busca-back-btn" onclick="voltarAbaAnterior()" style="display:none;position:absolute;left:0;top:0;background:var(--night3);border:1px solid var(--line2);color:var(--ink-mid);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-ui);gap:6px;align-items:center">← Voltar</button>
         <h2>Verificar Agente</h2>
         <p>Código do agente — confirma se ainda há pedidos em aberto (uso no WhatsApp: "055 finalizado?").</p>
       </div>
@@ -1192,6 +1193,7 @@ const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq
 let rawData = [];
 let collapsedRegions = new Set();
 let activeTab = 'operacional';
+let previousTab = null;
 
 /* ── HELPERS ── */
 function agentCode(ag) {
@@ -1253,7 +1255,14 @@ function rawHistorico(row) {
 }
 
 function getCepDestino(row) {
-  return (row['Cep Destino'] || row['CEP Destino'] || row['Cep'] || row['CEP'] || '').trim().replace(/\D/g,'');
+  // tenta todas as variações de nome de coluna CEP
+  for (const k of Object.keys(row)) {
+    if (/cep/i.test(k)) {
+      const v = (row[k] || '').toString().trim().replace(/\D/g,'');
+      if (v.length >= 5) return v;
+    }
+  }
+  return '';
 }
 function getCepPrefixo(row) {
   const cep = getCepDestino(row);
@@ -1692,10 +1701,22 @@ function renderTempo() {
   }).join('')}</div>`;
 }
 
+function voltarAbaAnterior() {
+  if (previousTab && previousTab !== 'busca') {
+    switchTab(previousTab);
+  } else {
+    switchTab('operacional');
+  }
+}
+
 function abrirDetalhesTempo(ag) {
+  previousTab = activeTab;
   document.getElementById('busca-cod').value = agentCode(ag);
   switchTab('busca');
   buscarAgente();
+  // Mostra botão voltar
+  const btn = document.getElementById('busca-back-btn');
+  if (btn) { btn.style.display = 'inline-flex'; }
 }
 
 /* ── BUSCA AGENTE ── */
@@ -1847,7 +1868,13 @@ function renderCep() {
 
   const el = document.getElementById('cep-list');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty"><h3>Sem dados</h3><p>Nenhum dado para os filtros selecionados.</p></div>';
+    const totalBase = rawData.length;
+    const comCep = rawData.filter(r => getCepDestino(r).length >= 5).length;
+    el.innerHTML = `<div class="empty">
+      <h3>Sem dados para os filtros selecionados</h3>
+      <p>Total de registros: <strong>${totalBase}</strong> · Com CEP válido: <strong>${comCep}</strong></p>
+      ${totalBase > 0 && comCep === 0 ? '<p style="color:var(--warn);margin-top:8px">⚠️ Nenhum registro tem CEP preenchido. Verifique se a coluna CEP está na planilha.</p>' : ''}
+    </div>`;
     return;
   }
 
@@ -1864,7 +1891,7 @@ function renderCep() {
   }
 
   el.innerHTML = `
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--night2);border-radius:8px;border:1px solid var(--line2)">
       <span style="font-size:11px;color:var(--ink-dim)">${rows.length} CEPs · <strong style="color:var(--ink)">${totalPedidos}</strong> pedidos</span>
       <span style="font-size:11px;color:var(--rota)">🔵 <strong>${totalRota}</strong> em rota</span>
       <span style="font-size:11px;color:var(--warn)">⚠️ <strong>${totalAusente}</strong> ausentes</span>
@@ -1938,6 +1965,14 @@ function switchTab(id) {
     const res = document.getElementById('busca-result');
     if (res && !cod.value) res.innerHTML = '';
     if (cod) setTimeout(() => cod.focus(), 80);
+    // Esconde botão voltar se navegação direta (não veio de outra aba via clique)
+    const btn = document.getElementById('busca-back-btn');
+    if (btn && !previousTab) btn.style.display = 'none';
+  } else {
+    // Ao sair da busca via tab normal, reseta previousTab
+    previousTab = null;
+    const btn = document.getElementById('busca-back-btn');
+    if (btn) btn.style.display = 'none';
   }
 }
 
@@ -1951,33 +1986,79 @@ function dataDoArquivo(data) {
   return latest;
 }
 
-function loadData(data, label) {
+function loadData(data, label, snapTime) {
   rawData = data;
-  const agora = new Date();
-  const horaCarregamento = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  const ts = dataDoArquivo(data);
-  const dataArquivo = ts ? ts.toLocaleDateString('pt-BR') : null;
-  const snapText = horaCarregamento + (dataArquivo ? ' · ' + dataArquivo : '');
+  // Mostra horário do Snapshot da aba Controle se disponível, senão usa hora atual
+  let snapText;
+  if (snapTime) {
+    snapText = snapTime;
+  } else {
+    const ts = dataDoArquivo(data);
+    if (ts) {
+      snapText = ts.toLocaleDateString('pt-BR') + ' ' + ts.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    } else {
+      const agora = new Date();
+      snapText = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    }
+  }
   document.getElementById('snap-time').textContent = snapText;
   populateFilters();
   render();
   document.getElementById('upload-section').style.display = 'none';
   document.getElementById('app').classList.add('visible');
   if (activeTab === 'tempo') renderTempo();
+  if (activeTab === 'cep')   renderCep();
+}
+
+// ══ CONFIGURAÇÃO: GID da aba Controle ══
+// Para encontrar o gid: abra o Google Sheets → clique na aba "Controle" →
+// veja a URL: ...#gid=XXXXXXXX — copie o número e cole em SHEETS_CONTROLE_GID
+const SHEETS_CONTROLE_GID = "1791562235"; // ← atualize com o gid real da aba Controle
+const SHEETS_BASE_ID = "2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI";
+const SHEETS_CONTROLE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEETS_BASE_ID}/pub?gid=${SHEETS_CONTROLE_GID}&single=true&output=csv`;
+
+async function fetchSnapTime() {
+  try {
+    const resp = await fetch(SHEETS_CONTROLE_URL);
+    if (!resp.ok) return null;
+    const csv = await resp.text();
+    // Pega a segunda linha, segunda coluna (B2 = valor do Snapshot)
+    const linhas = csv.split('\n').map(l => l.trim()).filter(Boolean);
+    if (linhas.length < 2) return null;
+    // Parse simples CSV para pegar B2
+    function parseCSVLine(line) {
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let c of line) {
+        if (c === '"') { inQ = !inQ; continue; }
+        if (c === ',' && !inQ) { cols.push(cur); cur = ''; continue; }
+        cur += c;
+      }
+      cols.push(cur);
+      return cols;
+    }
+    const row2 = parseCSVLine(linhas[1]);
+    const val  = (row2[1] || '').trim(); // coluna B
+    if (!val) return null;
+    return val.slice(0, 16); // "16/10/2026 13:30"
+  } catch(e) {
+    return null;
+  }
 }
 
 async function autoLoadFromSheets() {
   const status = document.getElementById('auto-load-status');
   try {
     status.textContent = 'Conectando ao Google Sheets...';
-    const resp = await fetch(SHEETS_URL);
+    // Carrega dados e Snapshot em paralelo
+    const [resp, snapTime] = await Promise.all([fetch(SHEETS_URL), fetchSnapTime()]);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const csv = await resp.text();
     const wb  = XLSX.read(csv, {type:'string'});
     const ws  = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {defval:''});
     if (!data.length) throw new Error('Vazio');
-    loadData(data);
+    loadData(data, null, snapTime);
   } catch(e) {
     status.textContent = '⚠️ Erro ao conectar. Importe o arquivo manualmente.';
     status.style.color = 'var(--warn)';
