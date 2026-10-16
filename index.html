@@ -1,543 +1,939 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlexBoys — Monitoramento Operacional</title>
+<title>FlexBoys Monitoramento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+/* ============================================================
+   TOKENS — dark-first (operational dashboard, always dark)
+   Layout: sticky header + tab nav + scrollable content area
+   ============================================================ */
+:root {
+  --red:        #C8102E;
+  --red-dim:    rgba(200,16,46,0.15);
+  --red-glow:   rgba(200,16,46,0.35);
+  --green:      #22c55e;
+  --green-dim:  rgba(34,197,94,0.12);
+  --yellow:     #f59e0b;
+  --yellow-dim: rgba(245,158,11,0.12);
+  --blue:       #3b82f6;
+  --blue-dim:   rgba(59,130,246,0.12);
+  --purple:     #a855f7;
+  --gray:       #6b7280;
 
-  :root {
-    --red: #C8102E;
-    --red-dark: #8B0A1F;
-    --red-glow: rgba(200,16,46,0.4);
-    --bg: #0a0a0a;
-    --bg2: #111111;
-    --bg3: #1a1a1a;
-    --border: #2a2a2a;
-    --text: #e8e8e8;
-    --text-dim: #888;
-    --green: #22c55e;
-    --yellow: #f59e0b;
-    --blue: #3b82f6;
-    --purple: #a855f7;
-  }
+  --bg:         #0a0a0a;
+  --bg2:        #111111;
+  --bg3:        #181818;
+  --bg4:        #1f1f1f;
+  --border:     #252525;
+  --border2:    #2e2e2e;
+  --text:       #e8e8e8;
+  --text-dim:   #777;
+  --text-mid:   #aaa;
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'Barlow', sans-serif;
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-  }
+  color-scheme: dark;
+}
 
-  /* HEADER */
-  .header {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a0505 100%);
-    border-bottom: 2px solid var(--red);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(200,16,46,0.2);
-  }
+/* Single-theme (always dark — operational tool) */
 
-  .logo {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    color: white;
-  }
-  .logo span { color: var(--red); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .header-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
+/* ── STICKY HEADER ── */
+.app-header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  background: #0d0d0d;
+  border-bottom: 2px solid var(--red);
+  box-shadow: 0 2px 16px var(--red-glow);
+  padding: 0 max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  gap: 12px;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: #0d0d0d;
+  z-index: 51;
+}
 
-  .snapshot-badge {
-    font-size: 12px;
-    color: var(--text-dim);
-    background: var(--bg3);
-    padding: 4px 12px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-  }
-  .snapshot-badge strong { color: var(--text); }
+.logo {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.logo span { color: var(--red); }
 
-  /* UPLOAD ZONE */
-  .upload-zone {
-    margin: 24px;
-    border: 2px dashed var(--red);
-    border-radius: 8px;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: linear-gradient(135deg, rgba(200,16,46,0.03), transparent);
-  }
-  .upload-zone:hover { background: rgba(200,16,46,0.08); border-color: #ff3355; }
-  .upload-zone.dragover { background: rgba(200,16,46,0.15); border-color: #ff3355; }
+.header-center {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .upload-icon { font-size: 40px; margin-bottom: 12px; }
-  .upload-zone h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .upload-zone p { color: var(--text-dim); font-size: 14px; }
-  .upload-zone input { display: none; }
+.snapshot-pill {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.snapshot-pill strong { color: var(--text-mid); }
 
-  .btn-upload {
-    margin-top: 16px;
-    background: var(--red);
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 4px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn-upload:hover { background: var(--red-dark); }
+/* ── UPLOAD SCREEN ── */
+.upload-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 52px);
+  padding: 24px max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.upload-card {
+  background: var(--bg2);
+  border: 2px dashed var(--red);
+  border-radius: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.upload-card:hover, .upload-card.dragover { background: var(--red-dim); border-color: #ff3355; }
+.upload-icon { font-size: 40px; margin-bottom: 16px; }
+.upload-card h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.upload-card p { color: var(--text-dim); font-size: 13px; margin-bottom: 4px; }
+#auto-load-status { color: var(--text-mid); margin-bottom: 12px; font-size: 13px; }
+.btn-primary {
+  display: inline-block;
+  margin-top: 12px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #a50c24; }
+.upload-card input[type=file] { display: none; }
 
-  /* DASHBOARD */
-  #dashboard { display: none; }
+/* ── MAIN APP ── */
+#app { display: none; flex-direction: column; height: 100%; }
+#app.visible { display: flex; }
 
-  /* KPI CARDS */
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    padding: 0 24px 20px;
-  }
+/* ── TAB NAV ── */
+.tab-nav {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  flex-shrink: 0;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--text-mid); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--red); }
 
-  .kpi {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 16px 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  .kpi::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--kpi-color, var(--red));
-  }
-  .kpi-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .kpi-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 42px;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--kpi-color, white);
-  }
+/* ── SCROLLABLE CONTENT ── */
+.tab-content { overflow-y: auto; flex: 1; }
+.tab-pane { display: none; padding: 16px max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+.tab-pane.active { display: block; }
 
-  /* FILTERS */
-  .filters {
-    display: flex;
-    gap: 12px;
-    padding: 0 24px 20px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
+/* ── FILTERS BAR ── */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.filter-select {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  min-width: 0;
+  flex: 1 1 120px;
+}
+.filter-select:focus { border-color: var(--red); }
+.search-input {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  flex: 1 1 160px;
+}
+.search-input:focus { border-color: var(--red); }
+.search-input::placeholder { color: var(--text-dim); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.btn-ghost:hover { border-color: var(--red); color: var(--text); }
 
-  .filter-label {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
+/* ── KPI ROW ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+@media (min-width: 500px) { .kpi-row { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 900px) { .kpi-row { grid-template-columns: repeat(5, 1fr); } }
 
-  select {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 14px;
-    cursor: pointer;
-    outline: none;
-  }
-  select:focus { border-color: var(--red); }
+.kpi {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--kpi-color, var(--red));
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.kpi-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--kpi-color, #fff);
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
 
-  .btn-clear {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-clear:hover { border-color: var(--red); color: var(--text); }
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.count-pill {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--red-dim);
+  color: var(--red);
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
 
-  /* MAIN GRID */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 16px;
-    padding: 0 24px 24px;
-  }
+/* ── TABLE ── */
+.table-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.table-wrap { overflow-x: auto; max-height: 65vh; overflow-y: auto; }
 
-  /* TABLE */
-  .table-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 480px;
+}
+thead th {
+  background: var(--bg3);
+  padding: 9px 12px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  z-index: 2;
+}
+thead th.r { text-align: right; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.025); }
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg3);
-  }
+.row-region {
+  background: rgba(200,16,46,0.07) !important;
+  cursor: pointer;
+}
+.row-region:hover { background: rgba(200,16,46,0.12) !important; }
+.row-region td {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 9px 12px;
+}
+.row-agent td {
+  padding: 7px 12px 7px 26px;
+  color: var(--text-dim);
+}
+.row-agent td:first-child { color: var(--text-mid); font-size: 12px; }
 
-  .card-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
+td.r { text-align: right; font-family: var(--font-display); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+td.r span { display: inline-block; min-width: 28px; }
 
-  .table-wrap { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+.badge-g {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: rgba(200,16,46,0.18);
+  color: #ff6680;
+}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
+.toggle-icon { margin-right: 6px; display: inline-block; transition: transform 0.15s; }
+.row-region.collapsed .toggle-icon { transform: rotate(-90deg); }
 
-  thead th {
-    background: var(--bg3);
-    padding: 10px 14px;
-    text-align: left;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    position: sticky;
-    top: 0;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
+/* ── SPLIT GRID (desktop) ── */
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (min-width: 800px) { .split-grid { grid-template-columns: 1fr 300px; } }
 
-  thead th.num { text-align: right; }
+/* ── STATUS LIST ── */
+.status-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.card-head {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.card-body { padding: 8px 0; }
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+}
+.status-item:hover { background: rgba(255,255,255,0.02); }
+.s-name { font-size: 12px; color: var(--text-dim); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-bar-wrap { flex: 2; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 0; }
+.s-bar { height: 100%; border-radius: 3px; }
+.s-count { font-family: var(--font-display); font-size: 17px; font-weight: 700; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
 
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-  tbody tr:hover { background: rgba(255,255,255,0.03); }
+/* ── TOP AGENTS CARD ── */
+.agent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+}
+.agent-item:hover { background: rgba(255,255,255,0.02); }
+.a-rank { font-size: 11px; color: var(--text-dim); min-width: 18px; text-align: center; }
+.a-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.a-cod { font-family: var(--font-display); font-size: 12px; color: var(--red); font-weight: 700; }
+.a-bar-wrap { width: 50px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+.a-bar { height: 100%; background: var(--blue); border-radius: 2px; }
+.a-count { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--blue); min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
 
-  .region-row {
-    background: rgba(200,16,46,0.08) !important;
-    cursor: pointer;
-  }
-  .region-row:hover { background: rgba(200,16,46,0.14) !important; }
+/* ── SERVIÇO BREAKDOWN ── */
+.service-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.service-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  flex: 1 1 120px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.service-chip-icon { font-size: 20px; flex-shrink: 0; }
+.service-chip-name { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); }
+.service-chip-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.service-chip-sub { font-size: 10px; color: var(--text-dim); }
 
-  .region-row td {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 10px 14px;
-  }
+/* ── ABA BUSCA ── */
+.search-hero {
+  text-align: center;
+  padding: 24px 0 20px;
+}
+.search-hero h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.search-hero p { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; }
+.search-box {
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
+  margin: 0 auto 24px;
+}
+.search-box input {
+  flex: 1;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+.search-box input:focus { border-color: var(--red); }
+.search-box input::placeholder { color: var(--text-dim); font-weight: 400; letter-spacing: 0; }
+.btn-search {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-search:hover { background: #a50c24; }
 
-  .agent-row td {
-    padding: 8px 14px 8px 30px;
-    color: var(--text-dim);
-  }
-  .agent-row td:first-child { color: var(--text); font-size: 12px; }
+.agent-result-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.agent-result-header {
+  padding: 16px 20px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.agent-result-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.agent-result-meta { font-size: 12px; color: var(--text-dim); display: flex; gap: 12px; flex-wrap: wrap; }
+.agent-result-meta span { display: flex; align-items: center; gap: 4px; }
 
-  td.num { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; }
+.agent-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+@media (min-width: 500px) { .agent-status-grid { grid-template-columns: repeat(4, 1fr); } }
+.status-tile {
+  background: var(--bg2);
+  padding: 14px 16px;
+  text-align: center;
+}
+.status-tile-val {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.status-tile-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
 
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .badge-gerente {
-    background: rgba(200,16,46,0.2);
-    color: #ff6680;
-    font-size: 10px;
-    padding: 2px 6px;
-  }
+.pedidos-list { padding: 8px 0; max-height: 340px; overflow-y: auto; }
+.pedido-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.pedido-row:last-child { border-bottom: none; }
+.pedido-row:hover { background: rgba(255,255,255,0.02); }
+.pedido-num { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-mid); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pedido-status { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+.pedido-data { font-size: 11px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
 
-  /* RIGHT PANEL */
-  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+.finalizado-banner {
+  padding: 24px 20px;
+  text-align: center;
+}
+.finalizado-banner .icon { font-size: 36px; margin-bottom: 10px; }
+.finalizado-banner h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--green);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.finalizado-banner p { font-size: 13px; color: var(--text-dim); }
 
-  .panel-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
+.no-result {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.no-result strong { color: var(--text); }
 
-  .status-list { padding: 12px 0; }
-  .status-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 20px;
-    gap: 12px;
-  }
-  .status-item:hover { background: rgba(255,255,255,0.02); }
+/* ── ABA TEMPO ── */
+.tempo-header {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.tempo-header strong { color: var(--text-mid); }
 
-  .status-name {
-    font-size: 13px;
-    color: var(--text-dim);
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.tempo-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.tempo-agent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  cursor: pointer;
+}
+.tempo-agent-row:last-child { border-bottom: none; }
+.tempo-agent-row:hover { background: rgba(255,255,255,0.025); }
+.t-rank { font-size: 11px; color: var(--text-dim); min-width: 20px; text-align: center; flex-shrink: 0; }
+.t-info { flex: 1; min-width: 0; }
+.t-name { font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.t-time-bar-wrap { flex: 2; min-width: 60px; max-width: 120px; }
+.t-time-bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.t-time-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.t-time-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; white-space: nowrap; }
+.t-count { font-family: var(--font-display); font-size: 16px; font-weight: 700; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.t-alert { font-size: 14px; flex-shrink: 0; }
 
-  .status-bar-wrap { flex: 2; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .status-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.alert-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .status-count {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    min-width: 32px;
-    text-align: right;
-  }
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 16px; color: var(--text-dim); }
+.empty h3 { font-family: var(--font-display); font-size: 18px; color: var(--text-mid); margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
 
-  /* Agentes com mais pedidos */
-  .agents-list { padding: 8px 0; }
-  .agent-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 20px;
-  }
-  .agent-item:hover { background: rgba(255,255,255,0.02); }
-  .agent-num { font-size: 11px; color: var(--text-dim); min-width: 20px; text-align: center; }
-  .agent-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .agent-count {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--blue);
-  }
-  .agent-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .agent-bar { height: 100%; background: var(--blue); border-radius: 2px; }
+/* ── REFRESH BTN ── */
+.refresh-row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 10px; }
+.refresh-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  .empty-state {
-    text-align: center;
-    padding: 60px 24px;
-    color: var(--text-dim);
-  }
-  .empty-state h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; margin-bottom: 8px; color: var(--text); }
-
-  /* Toggle row */
-  .toggle-icon { margin-right: 8px; transition: transform 0.2s; display: inline-block; }
-  .collapsed .toggle-icon { transform: rotate(-90deg); }
+/* ── UTILS ── */
+.tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.tag-ml      { background: var(--yellow-dim); color: var(--yellow); }
+.tag-shopee  { background: var(--blue-dim); color: var(--blue); }
+.tag-outros  { background: rgba(107,114,128,0.12); color: var(--gray); }
 </style>
-</head>
-<body>
 
-<div class="header">
+<!-- ═══════════════════════════════════════════════════════════
+     MARKUP
+════════════════════════════════════════════════════════════ -->
+
+<!-- Sticky Header -->
+<header class="app-header">
   <div class="logo">FLEX<span>BOYS</span></div>
-  <div class="header-title">Monitoramento Operacional</div>
-  <div class="header-right">
-    <div class="snapshot-badge">Atualizado às <strong id="snapshot-time">—</strong></div>
-  </div>
-</div>
+  <div class="header-center">Monitoramento Operacional</div>
+  <div class="snapshot-pill">📡 <strong id="snap-time">—</strong></div>
+</header>
 
-<!-- UPLOAD -->
-<div id="upload-section">
-  <div class="upload-zone" id="drop-zone">
+<!-- Upload Screen -->
+<div id="upload-section" class="upload-screen">
+  <div class="upload-card" id="drop-zone">
     <div class="upload-icon">📦</div>
-    <h2>FlexBoys — Monitoramento</h2>
-    <p id="auto-load-status" style="color:var(--text-dim); margin-bottom:8px">Conectando ao Google Sheets...</p>
-    <p style="font-size:12px; color:#555;">Ou importe manualmente o CSV do Tracken</p>
-    <button class="btn-upload" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
+    <h2>FlexBoys — Monitor</h2>
+    <p id="auto-load-status">Conectando ao Google Sheets...</p>
+    <p style="font-size:12px;color:var(--text-dim)">Ou importe o CSV manualmente</p>
+    <button class="btn-primary" onclick="document.getElementById('file-input').click()">Selecionar Arquivo</button>
     <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-  <div class="kpi-row">
-    <div class="kpi" style="--kpi-color: #e8e8e8">
-      <div class="kpi-label">Total Entregas</div>
-      <div class="kpi-value" id="kpi-total">0</div>
-    </div>
-    <div class="kpi" style="--kpi-color: var(--red)">
-      <div class="kpi-label">Em Rota</div>
-      <div class="kpi-value" id="kpi-rota">0</div>
-    </div>
-    <div class="kpi" style="--kpi-color: var(--green)">
-      <div class="kpi-label">Entregues</div>
-      <div class="kpi-value" id="kpi-entregue">0</div>
-    </div>
-    <div class="kpi" style="--kpi-color: var(--yellow)">
-      <div class="kpi-label">Ausente</div>
-      <div class="kpi-value" id="kpi-ausente">0</div>
-    </div>
-    <div class="kpi" style="--kpi-color: var(--purple)">
-      <div class="kpi-label">Outros</div>
-      <div class="kpi-value" id="kpi-outros">0</div>
-    </div>
-  </div>
+<!-- App -->
+<div id="app">
+  <!-- Tabs -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('operacional')">📊 Operacional</button>
+    <button class="tab-btn" onclick="switchTab('busca')">🔍 Busca Agente</button>
+    <button class="tab-btn" onclick="switchTab('tempo')">⏱ Tempo em Rota</button>
+    <button class="tab-btn" onclick="switchTab('nova')">↑ Nova Planilha</button>
+  </nav>
 
-  <div class="filters">
-    <span class="filter-label">Filtros:</span>
-    <select id="filter-gerente" onchange="renderDashboard()">
-      <option value="">Todos os Gerentes</option>
-    </select>
-    <select id="filter-regiao" onchange="renderDashboard()">
-      <option value="">Todas as Regiões</option>
-    </select>
-    <select id="filter-servico" onchange="renderDashboard()">
-      <option value="">Todos os Serviços</option>
-      <option value="ML">Mercado Livre</option>
-      <option value="SHOPEE">Shopee</option>
-    </select>
-    <select id="filter-status" onchange="renderDashboard()">
-      <option value="">Todos os Status</option>
-      <option value="EM ROTA">Em Rota</option>
-      <option value="ENTREGUE">Entregue</option>
-      <option value="AUSENTE">Ausente</option>
-    </select>
-    <input id="search-agente" type="text" placeholder="🔍 Buscar agente por código..." 
-      style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:4px;font-family:Barlow,sans-serif;font-size:14px;outline:none;width:220px"
-      oninput="renderDashboard()" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--border)'">
-    <button class="btn-clear" onclick="clearFilters()">✕ Limpar Filtros</button>
-    <button class="btn-clear" onclick="document.getElementById('file-input').click()">↑ Nova Planilha</button>
-  </div>
+  <div class="tab-content">
 
-  <div class="main-grid">
-    <div class="table-card">
-      <div class="card-header">
-        <div class="card-title">Regiões e Agentes</div>
-        <div style="font-size:12px; color:var(--text-dim)"><span id="count-label">0</span> agentes em rota</div>
+    <!-- ══ ABA OPERACIONAL ══ -->
+    <div class="tab-pane active" id="pane-operacional">
+
+      <!-- Filtros -->
+      <div class="filters-bar" style="margin-top:14px">
+        <select class="filter-select" id="f-gerente" onchange="render()">
+          <option value="">Todos os Gerentes</option>
+        </select>
+        <select class="filter-select" id="f-regiao" onchange="render()">
+          <option value="">Todas as Regiões</option>
+        </select>
+        <select class="filter-select" id="f-servico" onchange="render()">
+          <option value="">ML + Shopee</option>
+          <option value="ML">Mercado Livre</option>
+          <option value="SHOPEE">Shopee</option>
+        </select>
+        <select class="filter-select" id="f-status" onchange="render()">
+          <option value="">Todos os Status</option>
+          <option value="EM ROTA">Em Rota</option>
+          <option value="ENTREGUE">Entregue</option>
+          <option value="AUSENTE">Ausente</option>
+          <option value="OUTROS">Outros</option>
+        </select>
+        <input class="search-input" id="f-agente" placeholder="🔍 Agente..." oninput="render()">
+        <button class="btn-ghost" onclick="clearFilters()">✕ Limpar</button>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Região / Agente</th>
-              <th>Gerente</th>
-              <th class="num">Em Rota</th>
-              <th class="num">Entregue</th>
-              <th class="num">Ausente</th>
-              <th class="num">Outros</th>
-            </tr>
-          </thead>
-          <tbody id="main-tbody"></tbody>
-        </table>
+
+      <!-- Service strip -->
+      <div class="service-strip" id="service-strip"></div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-color:var(--text)">
+          <div class="kpi-label">Total</div>
+          <div class="kpi-value" id="k-total">0</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--red)">
+          <div class="kpi-label">Em Rota</div>
+          <div class="kpi-value" id="k-rota">0</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--green)">
+          <div class="kpi-label">Entregue</div>
+          <div class="kpi-value" id="k-entregue">0</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--yellow)">
+          <div class="kpi-label">Ausente</div>
+          <div class="kpi-value" id="k-ausente">0</div>
+        </div>
+        <div class="kpi" style="--kpi-color:var(--gray)">
+          <div class="kpi-label">Outros</div>
+          <div class="kpi-value" id="k-outros">0</div>
+        </div>
+      </div>
+
+      <!-- Split grid: table + sidepanel -->
+      <div class="split-grid">
+        <!-- Table -->
+        <div>
+          <div class="section-header">
+            <span class="section-title">Regiões &amp; Agentes</span>
+            <span class="count-pill" id="count-rota">0 agentes em rota</span>
+          </div>
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Região / Agente</th>
+                    <th>Ger.</th>
+                    <th class="r" title="Em Rota" style="color:var(--red)">Rota</th>
+                    <th class="r" title="Entregue" style="color:var(--green)">Entregue</th>
+                    <th class="r" title="Ausente" style="color:var(--yellow)">Ausente</th>
+                    <th class="r" title="Outros" style="color:var(--gray)">Outros</th>
+                  </tr>
+                </thead>
+                <tbody id="main-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side panels -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="status-card">
+            <div class="card-head"><span class="section-title">Status Geral</span></div>
+            <div class="card-body" id="status-list"></div>
+          </div>
+          <div class="status-card">
+            <div class="card-head"><span class="section-title">Top Agentes em Aberto</span></div>
+            <div class="card-body" id="agents-list"></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="right-panel">
-      <div class="panel-card">
-        <div class="card-header"><div class="card-title">Status Geral</div></div>
-        <div class="status-list" id="status-list"></div>
+    <!-- ══ ABA BUSCA ══ -->
+    <div class="tab-pane" id="pane-busca">
+      <div class="search-hero">
+        <h2>Verificar Agente</h2>
+        <p>Digite o código do agente para ver se ainda tem pedidos em aberto.</p>
       </div>
-      <div class="panel-card">
-        <div class="card-header"><div class="card-title">Top Agentes em Aberto</div></div>
-        <div class="agents-list" id="agents-list"></div>
+      <div class="search-box">
+        <input type="text" id="busca-cod" placeholder="Ex: 055" inputmode="numeric"
+          onkeydown="if(event.key==='Enter') buscarAgente()">
+        <button class="btn-search" onclick="buscarAgente()">Verificar</button>
+      </div>
+      <div id="busca-result"></div>
+    </div>
+
+    <!-- ══ ABA TEMPO ══ -->
+    <div class="tab-pane" id="pane-tempo">
+      <div class="tempo-header">
+        <strong>Tempo em Rota por Agente</strong> — mostra há quantas horas cada agente está com pedidos em aberto, com base na data do histórico mais antigo ainda em rota. Agentes com pouco volume mas muito tempo ficam em destaque.
+      </div>
+
+      <div class="alert-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> &lt; 3h — Normal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> 3–5h — Atenção</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> 5–8h — Crítico</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div> &gt; 8h — Alerta Máximo</div>
+      </div>
+
+      <!-- Sub-filtros -->
+      <div class="filters-bar" style="margin-bottom:12px">
+        <select class="filter-select" id="t-gerente" onchange="renderTempo()" style="flex: 1 1 140px">
+          <option value="">Todos os Gerentes</option>
+        </select>
+        <select class="filter-select" id="t-servico" onchange="renderTempo()" style="flex: 1 1 140px">
+          <option value="">ML + Shopee</option>
+          <option value="ML">Mercado Livre</option>
+          <option value="SHOPEE">Shopee</option>
+        </select>
+        <select class="filter-select" id="t-sort" onchange="renderTempo()" style="flex: 1 1 140px">
+          <option value="tempo">Ordenar: Mais Tempo</option>
+          <option value="pedidos">Ordenar: Mais Pedidos</option>
+          <option value="alerta">Ordenar: Alerta</option>
+        </select>
+      </div>
+
+      <div id="tempo-list"></div>
+    </div>
+
+    <!-- ══ ABA NOVA PLANILHA ══ -->
+    <div class="tab-pane" id="pane-nova">
+      <div style="display:flex;align-items:center;justify-content:center;min-height:50vh;padding:24px 0">
+        <div style="text-align:center;max-width:360px">
+          <div style="font-size:40px;margin-bottom:16px">📤</div>
+          <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Atualizar Planilha</h2>
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px">Importe um CSV ou Excel novo para atualizar o painel, ou recarregue os dados do Google Sheets.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
+            <button class="btn-primary" onclick="document.getElementById('file-input2').click()">📁 Importar Arquivo</button>
+            <input type="file" id="file-input2" accept=".csv,.xlsx,.xls" style="display:none">
+            <button class="btn-ghost" style="padding:10px 20px" onclick="reloadSheets()">🔄 Recarregar Google Sheets</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
+  </div><!-- /tab-content -->
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// === dResponsabilidade embutido ===
-const D_RESPONSABILIDADE = [{"regiao_tracken":"BARUERI_1","regiao":"BARUERI","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"BARUERI_2","regiao":"BARUERI","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"CARAPICUIBA","regiao":"CARAPICUIBA","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"CENTRO","regiao":"CENTRO","macro_regiao":"CENTRO","gerente":"RODRIGO"},{"regiao_tracken":"COTIA","regiao":"COTIA","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"DIADEMA","regiao":"DIADEMA","macro_regiao":"SUL","gerente":"BRUNO"},{"regiao_tracken":"EMBU_1","regiao":"EMBU","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"EMBU_2","regiao":"EMBU","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"GUARULHOS_1","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_2","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_3","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"GUARULHOS_4","regiao":"GUARULHOS","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"LESTE_1","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_2","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_3","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_4","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"LESTE_5","regiao":"LESTE","macro_regiao":"ZONA LESTE","gerente":"BRUNO"},{"regiao_tracken":"MAUA","regiao":"MAUA","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"NORTE_1","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"NORTE_2","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"NORTE_3","regiao":"NORTE","macro_regiao":"NORTE","gerente":"RODRIGO"},{"regiao_tracken":"OESTE_1","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OESTE_2","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OESTE_3","regiao":"OESTE","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_1","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_2","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"OSASCO_3","regiao":"OSASCO","macro_regiao":"OESTE","gerente":"DANIEL"},{"regiao_tracken":"SANTO_ANDRE_1","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SANTO_ANDRE_2","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SANTO_ANDRE_3","regiao":"SANTO ANDRE","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_BERNARDO_1","regiao":"SÃO BERNARDO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_BERNARDO_2","regiao":"SÃO BERNARDO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SAO_CAETANO","regiao":"SÃO CAETANO","macro_regiao":"ABC","gerente":"BRUNO"},{"regiao_tracken":"SUL_1","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"SUL_2","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"SUL_3","regiao":"SUL","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"TABOAO","regiao":"TABOÃO","macro_regiao":"SUL","gerente":"DANIEL"},{"regiao_tracken":"ITAQUAQUECETUBA","regiao":"LESTE","macro_regiao":"LESTE","gerente":"BRUNO"},{"regiao_tracken":"CAJAMAR","regiao":"CAJAMAR","macro_regiao":"CAJAMAR","gerente":"RODRIGO"}];
+/* ── DATA ── */
+const D_RESP = [{"rt":"BARUERI_1","g":"DANIEL"},{"rt":"BARUERI_2","g":"DANIEL"},{"rt":"CARAPICUIBA","g":"DANIEL"},{"rt":"CENTRO","g":"RODRIGO"},{"rt":"COTIA","g":"DANIEL"},{"rt":"DIADEMA","g":"BRUNO"},{"rt":"EMBU_1","g":"DANIEL"},{"rt":"EMBU_2","g":"DANIEL"},{"rt":"GUARULHOS_1","g":"RODRIGO"},{"rt":"GUARULHOS_2","g":"RODRIGO"},{"rt":"GUARULHOS_3","g":"RODRIGO"},{"rt":"GUARULHOS_4","g":"RODRIGO"},{"rt":"LESTE_1","g":"BRUNO"},{"rt":"LESTE_2","g":"BRUNO"},{"rt":"LESTE_3","g":"BRUNO"},{"rt":"LESTE_4","g":"BRUNO"},{"rt":"LESTE_5","g":"BRUNO"},{"rt":"MAUA","g":"BRUNO"},{"rt":"NORTE_1","g":"RODRIGO"},{"rt":"NORTE_2","g":"RODRIGO"},{"rt":"NORTE_3","g":"RODRIGO"},{"rt":"OESTE_1","g":"DANIEL"},{"rt":"OESTE_2","g":"DANIEL"},{"rt":"OESTE_3","g":"DANIEL"},{"rt":"OSASCO_1","g":"DANIEL"},{"rt":"OSASCO_2","g":"DANIEL"},{"rt":"OSASCO_3","g":"DANIEL"},{"rt":"SANTO_ANDRE_1","g":"BRUNO"},{"rt":"SANTO_ANDRE_2","g":"BRUNO"},{"rt":"SANTO_ANDRE_3","g":"BRUNO"},{"rt":"SAO_BERNARDO_1","g":"BRUNO"},{"rt":"SAO_BERNARDO_2","g":"BRUNO"},{"rt":"SAO_CAETANO","g":"BRUNO"},{"rt":"SUL_1","g":"DANIEL"},{"rt":"SUL_2","g":"DANIEL"},{"rt":"SUL_3","g":"DANIEL"},{"rt":"TABOAO","g":"DANIEL"},{"rt":"ITAQUAQUECETUBA","g":"BRUNO"},{"rt":"CAJAMAR","g":"RODRIGO"}];
 
 const respMap = {};
-D_RESPONSABILIDADE.forEach(r => { respMap[r.regiao_tracken] = r; });
+D_RESP.forEach(d => { respMap[d.rt] = d.g; });
 
-// Override de gerente por código de agente (agentes que pertencem a gerente diferente da região)
-const AGENT_GERENTE_OVERRIDE = {
-  '883':  'RODRIGO',  // GABRIEL CARDOSO DA COSTA
-  '1626': 'RODRIGO'  // FELIPE WISNIEWSKI ARMAGNI
-};
+const AGENT_OVERRIDE = { '883': 'RODRIGO', '1626': 'RODRIGO' };
 
-function getGerente(row) {
-  const ag = (row['Agente'] || '').trim();
-  const codMatch = ag.match(/^(\d+)/);
-  if (codMatch && AGENT_GERENTE_OVERRIDE[codMatch[1]]) {
-    return AGENT_GERENTE_OVERRIDE[codMatch[1]];
-  }
-  const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
-  return respMap[reg]?.gerente || '';
-}
+const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
 
 let rawData = [];
 let collapsedRegions = new Set();
+let activeTab = 'operacional';
 
-// SERVIÇO
+/* ── HELPERS ── */
+function agentCode(ag) {
+  const m = (ag || '').match(/^(\d+)/);
+  return m ? m[1] : '';
+}
+
+function getGerente(row) {
+  const cod = agentCode(row['Agente'] || '');
+  if (cod && AGENT_OVERRIDE[cod]) return AGENT_OVERRIDE[cod];
+  const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
+  return respMap[reg] || '';
+}
+
 function normalizeServico(row) {
-  const serv = (row['Servico'] || row['Serviço'] || '').trim().toUpperCase();
-  if (serv.includes('SHOPEE')) return 'SHOPEE';
-  if (serv.includes('MERCADO') || serv.includes('FLEX')) return 'ML';
+  const s = (row['Servico'] || row['Serviço'] || '').trim().toUpperCase();
+  if (s.includes('SHOPEE')) return 'SHOPEE';
+  if (s.includes('MERCADO') || s.includes('FLEX')) return 'ML';
   return 'OUTROS';
 }
 
-// STATUS — lógica diferenciada por serviço
 function normalizeStatus(row) {
-  const servico = normalizeServico(row);
-  const hist = (row['Historico'] || '').trim().toUpperCase();
-  const ecom = (row['Historico Ecommerce'] || '').trim().toUpperCase();
-  const ecomPrimeiro = ecom.split('<QL>')[0].trim();
+  const serv = normalizeServico(row);
+  const hist = (row['Historico'] || row['Histórico'] || '').trim().toUpperCase();
+  const ecom = (row['Historico Ecommerce'] || row['Histórico Ecommerce'] || '').trim().toUpperCase();
+  const ecomFirst = ecom.split('<QL>')[0].trim();
 
-  if (servico === 'ML') {
-    // ML: Coluna F é o definidor
-    // Se F diz "A CAMINHO", pedido está em aberto — independente do D
-    if (ecomPrimeiro.startsWith('A CAMINHO')) return 'EM ROTA';
-    // Sem F confiável, usa D
+  if (serv === 'ML') {
+    if (ecomFirst.startsWith('A CAMINHO')) return 'EM ROTA';
     if (hist === 'ENTREGUE') return 'ENTREGUE';
     if (hist === 'AUSENTE') return 'AUSENTE';
     return hist || 'OUTROS';
   }
-
-  if (servico === 'SHOPEE') {
-    // Shopee: F sempre diz "EM ROTA" — não serve de definidor
-    // Usa coluna D como status real
+  if (serv === 'SHOPEE') {
     if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
     if (hist === 'ENTREGUE') return 'ENTREGUE';
     if (hist === 'AUSENTE') return 'AUSENTE';
@@ -545,293 +941,581 @@ function normalizeStatus(row) {
     if (hist === 'CANCELADO') return 'CANCELADO';
     return hist || 'OUTROS';
   }
-
-  // Fallback genérico
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
   if (hist === 'ENTREGUE') return 'ENTREGUE';
   if (hist === 'AUSENTE') return 'AUSENTE';
   return hist || 'OUTROS';
 }
 
-// === GOOGLE SHEETS URL (aba Base) ===
-const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
-
-// AUTO-LOAD do Sheets ao abrir a página
-async function autoLoadFromSheets() {
-  const status = document.getElementById('auto-load-status');
-  try {
-    status.textContent = 'Conectando ao Google Sheets...';
-    const resp = await fetch(SHEETS_URL);
-    if (!resp.ok) throw new Error('Erro ' + resp.status);
-    const csvText = await resp.text();
-    const wb = XLSX.read(csvText, { type: 'string' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
-    if (rawData.length === 0) throw new Error('Planilha vazia');
-    const now = new Date();
-    document.getElementById('snapshot-time').textContent =
-      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
-    populateFilters();
-    renderDashboard();
-    document.getElementById('upload-section').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-  } catch(err) {
-    status.textContent = 'Erro ao carregar automaticamente. Importe o CSV manualmente.';
-    status.style.color = '#f59e0b';
+// Parse "DD/MM/YYYY HH:mm" or "DD/MM/YYYY HH:mm:ss" → Date
+function parseDataHist(str) {
+  if (!str) return null;
+  const s = (str + '').trim();
+  // Try DD/MM/YYYY HH:mm:ss
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (m) {
+    return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
   }
+  return null;
 }
 
-// FILE UPLOAD
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
-
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  processFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
-
-// Carrega automaticamente ao abrir
-autoLoadFromSheets();
-
-function processFile(file) {
-  const reader = new FileReader();
-  const isCSV = file.name.toLowerCase().endsWith('.csv');
-
-  reader.onload = function(e) {
-    try {
-      let data;
-      if (isCSV) {
-        const wb = XLSX.read(e.target.result, { type: 'binary', raw: false });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      } else {
-        const wb = XLSX.read(e.target.result, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      }
-      rawData = data;
-      const now = new Date();
-      document.getElementById('snapshot-time').textContent =
-        now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
-      populateFilters();
-      renderDashboard();
-      document.getElementById('upload-section').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-    } catch(err) {
-      alert('Erro ao ler arquivo: ' + err.message);
-    }
-  };
-
-  if (isCSV) reader.readAsBinaryString(file);
-  else reader.readAsArrayBuffer(file);
+// Tempo em horas desde a data mais antiga de um agente em rota
+function horasMaisAntiga(rows) {
+  let oldest = null;
+  rows.forEach(r => {
+    const d = parseDataHist(r['Data Historico'] || r['Data Histórico']);
+    if (d && (!oldest || d < oldest)) oldest = d;
+  });
+  if (!oldest) return null;
+  return (Date.now() - oldest.getTime()) / 3600000;
 }
 
-function populateFilters() {
-  const gerentes = [...new Set(rawData.map(r => {
-    return getGerente(r);
-  }).filter(Boolean))].sort();
-
-  const regioes = [...new Set(rawData.map(r =>
-    (r['Regiao Destino'] || r['Região Destino'] || '').trim().toUpperCase()
-  ).filter(Boolean))].sort();
-
-  const gSel = document.getElementById('filter-gerente');
-  gSel.innerHTML = '<option value="">Todos os Gerentes</option>';
-  gerentes.forEach(g => gSel.innerHTML += `<option value="${g}">${g}</option>`);
-
-  const rSel = document.getElementById('filter-regiao');
-  rSel.innerHTML = '<option value="">Todas as Regiões</option>';
-  regioes.forEach(r => rSel.innerHTML += `<option value="${r}">${r}</option>`);
+function tempoLabel(h) {
+  if (h === null) return '—';
+  if (h < 1) return `${Math.round(h * 60)}min`;
+  return `${h.toFixed(1)}h`;
 }
 
+function tempoColor(h) {
+  if (h === null) return 'var(--gray)';
+  if (h < 3) return '#22c55e';
+  if (h < 5) return '#f59e0b';
+  if (h < 8) return '#ef4444';
+  return '#a855f7';
+}
+
+function tempoAlert(h) {
+  if (h === null) return '';
+  if (h < 3) return '';
+  if (h < 5) return '⚠️';
+  if (h < 8) return '🔴';
+  return '🚨';
+}
+
+const STATUS_COLORS = {
+  'EM ROTA': 'var(--red)', 'ENTREGUE': 'var(--green)',
+  'AUSENTE': 'var(--yellow)', 'RECUSADO': 'var(--purple)',
+  'CANCELADO': 'var(--gray)', 'OUTROS': 'var(--gray)',
+};
+const STATUS_BG = {
+  'EM ROTA': 'rgba(200,16,46,0.18)', 'ENTREGUE': 'rgba(34,197,94,0.15)',
+  'AUSENTE': 'rgba(245,158,11,0.15)', 'RECUSADO': 'rgba(168,85,247,0.15)',
+  'CANCELADO': 'rgba(107,114,128,0.15)', 'OUTROS': 'rgba(107,114,128,0.15)',
+};
+
+/* ── FILTERED DATA ── */
 function getFiltered() {
-  const gFilter = document.getElementById('filter-gerente').value;
-  const rFilter = document.getElementById('filter-regiao').value;
-  const sFilter = document.getElementById('filter-status').value;
-  const servFilter = document.getElementById('filter-servico').value;
-  const searchFilter = (document.getElementById('search-agente').value || '').trim().toLowerCase();
+  const gF = document.getElementById('f-gerente').value;
+  const rF = document.getElementById('f-regiao').value;
+  const sF = document.getElementById('f-status').value;
+  const svF = document.getElementById('f-servico').value;
+  const aF = (document.getElementById('f-agente').value || '').trim().toLowerCase();
 
   return rawData.filter(row => {
     const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
-    const gerente = getGerente(row);
-    const status = normalizeStatus(row);
-    const servico = normalizeServico(row);
-    const agente = (row['Agente'] || '').trim().toLowerCase();
-
-    if (gFilter && gerente !== gFilter) return false;
-    if (rFilter && reg !== rFilter) return false;
-    if (sFilter && !status.includes(sFilter)) return false;
-    if (servFilter && servico !== servFilter) return false;
-    if (searchFilter && !agente.includes(searchFilter)) return false;
+    const g = getGerente(row);
+    const st = normalizeStatus(row);
+    const sv = normalizeServico(row);
+    const ag = (row['Agente'] || '').trim().toLowerCase();
+    if (gF && g !== gF) return false;
+    if (rF && reg !== rF) return false;
+    if (sF && st !== sF) return false;
+    if (svF && sv !== svF) return false;
+    if (aF && !ag.includes(aF)) return false;
     return true;
   });
 }
 
-function clearFilters() {
-  document.getElementById('filter-gerente').value = '';
-  document.getElementById('filter-regiao').value = '';
-  document.getElementById('filter-status').value = '';
-  document.getElementById('filter-servico').value = '';
-  document.getElementById('search-agente').value = '';
-  renderDashboard();
+/* ── POPULATE FILTERS ── */
+function populateFilters() {
+  const gerentes = [...new Set(rawData.map(r => getGerente(r)).filter(Boolean))].sort();
+  const regioes  = [...new Set(rawData.map(r => (r['Regiao Destino'] || r['Região Destino'] || '').trim().toUpperCase()).filter(Boolean))].sort();
+
+  const gSel = document.getElementById('f-gerente');
+  gSel.innerHTML = '<option value="">Todos os Gerentes</option>';
+  gerentes.forEach(g => gSel.innerHTML += `<option>${g}</option>`);
+
+  const rSel = document.getElementById('f-regiao');
+  rSel.innerHTML = '<option value="">Todas as Regiões</option>';
+  regioes.forEach(r => rSel.innerHTML += `<option>${r}</option>`);
+
+  // also tempo tab filters
+  const tgSel = document.getElementById('t-gerente');
+  tgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
+  gerentes.forEach(g => tgSel.innerHTML += `<option>${g}</option>`);
 }
 
-const STATUS_COLORS = {
-  'EM ROTA':    '#C8102E',
-  'ENTREGUE':   '#22c55e',
-  'AUSENTE':    '#f59e0b',
-  'RECUSADO':   '#a855f7',
-  'CANCELADO':  '#6b7280',
-  'OUTROS':     '#6b7280',
-};
+function clearFilters() {
+  ['f-gerente','f-regiao','f-status','f-servico','f-agente'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  render();
+}
 
-function renderDashboard() {
+/* ── RENDER OPERACIONAL ── */
+function render() {
   const data = getFiltered();
 
   // KPIs
-  const total = data.length;
   let rota=0, entregue=0, ausente=0, outros=0;
   const statusCount = {};
+  const mlCount = {rota:0, entregue:0, ausente:0, outros:0};
+  const shopCount = {rota:0, entregue:0, ausente:0, outros:0};
 
   data.forEach(row => {
-    const s = normalizeStatus(row);
-    statusCount[s] = (statusCount[s] || 0) + 1;
-    if (s === 'EM ROTA') rota++;
-    else if (s === 'ENTREGUE') entregue++;
-    else if (s === 'AUSENTE') ausente++;
+    const st = normalizeStatus(row);
+    const sv = normalizeServico(row);
+    statusCount[st] = (statusCount[st] || 0) + 1;
+    if (st === 'EM ROTA') rota++;
+    else if (st === 'ENTREGUE') entregue++;
+    else if (st === 'AUSENTE') ausente++;
     else outros++;
+    const bucket = sv === 'ML' ? mlCount : sv === 'SHOPEE' ? shopCount : null;
+    if (bucket) {
+      if (st === 'EM ROTA') bucket.rota++;
+      else if (st === 'ENTREGUE') bucket.entregue++;
+      else if (st === 'AUSENTE') bucket.ausente++;
+      else bucket.outros++;
+    }
   });
 
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-rota').textContent = rota;
-  document.getElementById('kpi-entregue').textContent = entregue;
-  document.getElementById('kpi-ausente').textContent = ausente;
-  document.getElementById('kpi-outros').textContent = outros;
+  document.getElementById('k-total').textContent = data.length;
+  document.getElementById('k-rota').textContent = rota;
+  document.getElementById('k-entregue').textContent = entregue;
+  document.getElementById('k-ausente').textContent = ausente;
+  document.getElementById('k-outros').textContent = outros;
 
-  // STATUS LIST
-  const maxStatus = Math.max(...Object.values(statusCount), 1);
-  const statusSorted = Object.entries(statusCount).sort((a,b) => b[1]-a[1]);
-  document.getElementById('status-list').innerHTML = statusSorted.map(([s, c]) => {
-    const color = STATUS_COLORS[s] || '#6b7280';
-    const pct = Math.round(c / maxStatus * 100);
+  // Service strip
+  const svFilter = document.getElementById('f-servico').value;
+  const showBoth = !svFilter;
+  const strip = document.getElementById('service-strip');
+  if (showBoth) {
+    strip.innerHTML = `
+      <div class="service-chip">
+        <div class="service-chip-icon">🟡</div>
+        <div>
+          <div class="service-chip-name">Mercado Livre</div>
+          <div class="service-chip-val">${mlCount.rota + mlCount.entregue + mlCount.ausente + mlCount.outros}</div>
+          <div class="service-chip-sub">${mlCount.rota} rota · ${mlCount.entregue} ent. · ${mlCount.ausente} aus.</div>
+        </div>
+      </div>
+      <div class="service-chip">
+        <div class="service-chip-icon">🟠</div>
+        <div>
+          <div class="service-chip-name">Shopee</div>
+          <div class="service-chip-val">${shopCount.rota + shopCount.entregue + shopCount.ausente + shopCount.outros}</div>
+          <div class="service-chip-sub">${shopCount.rota} rota · ${shopCount.entregue} ent. · ${shopCount.ausente} aus.</div>
+        </div>
+      </div>`;
+  } else {
+    const b = svFilter === 'ML' ? mlCount : shopCount;
+    const icon = svFilter === 'ML' ? '🟡' : '🟠';
+    const name = svFilter === 'ML' ? 'Mercado Livre' : 'Shopee';
+    strip.innerHTML = `
+      <div class="service-chip" style="border-color: ${svFilter==='ML'?'var(--yellow)':'var(--blue)'}; max-width:280px">
+        <div class="service-chip-icon">${icon}</div>
+        <div>
+          <div class="service-chip-name">${name} — Filtrado</div>
+          <div class="service-chip-val">${b.rota + b.entregue + b.ausente + b.outros}</div>
+          <div class="service-chip-sub">${b.rota} rota · ${b.entregue} entregue · ${b.ausente} ausente</div>
+        </div>
+      </div>`;
+  }
+
+  // Status list
+  const maxSt = Math.max(...Object.values(statusCount), 1);
+  const stSorted = Object.entries(statusCount).sort((a,b) => b[1]-a[1]);
+  document.getElementById('status-list').innerHTML = stSorted.map(([s, c]) => {
+    const col = STATUS_COLORS[s] || 'var(--gray)';
+    const pct = Math.round(c / maxSt * 100);
     return `<div class="status-item">
-      <div class="status-name">${s}</div>
-      <div class="status-bar-wrap"><div class="status-bar" style="width:${pct}%;background:${color}"></div></div>
-      <div class="status-count" style="color:${color}">${c}</div>
+      <div class="s-name">${s}</div>
+      <div class="s-bar-wrap"><div class="s-bar" style="width:${pct}%;background:${col}"></div></div>
+      <div class="s-count" style="color:${col}">${c}</div>
     </div>`;
-  }).join('');
+  }).join('') || '<div style="padding:16px 14px;color:var(--text-dim);font-size:12px">Sem dados</div>';
 
-  // GROUP BY REGION > AGENT
+  // Region/Agent table
   const regions = {};
   data.forEach(row => {
-    const reg = (row['Regiao Destino'] || row['Região Destino'] || 'DESCONHECIDO').trim().toUpperCase();
-    const agent = (row['Agente'] || 'SEM AGENTE').trim();
-    const status = normalizeStatus(row);
+    const reg = (row['Regiao Destino'] || row['Região Destino'] || 'SEM REGIÃO').trim().toUpperCase();
+    const ag = (row['Agente'] || 'SEM AGENTE').trim();
+    const st = normalizeStatus(row);
     if (!regions[reg]) regions[reg] = {};
-    if (!regions[reg][agent]) regions[reg][agent] = {rota:0, entregue:0, ausente:0, outros:0};
-    if (status === 'EM ROTA') regions[reg][agent].rota++;
-    else if (status === 'ENTREGUE') regions[reg][agent].entregue++;
-    else if (status === 'AUSENTE') regions[reg][agent].ausente++;
-    else regions[reg][agent].outros++;
+    if (!regions[reg][ag]) regions[reg][ag] = {rota:0,entregue:0,ausente:0,outros:0};
+    if (st==='EM ROTA') regions[reg][ag].rota++;
+    else if (st==='ENTREGUE') regions[reg][ag].entregue++;
+    else if (st==='AUSENTE') regions[reg][ag].ausente++;
+    else regions[reg][ag].outros++;
   });
 
-  // TABLE
   let agentesEmRota = 0;
   const tbody = document.getElementById('main-tbody');
   tbody.innerHTML = '';
 
-  const regionsSorted = Object.keys(regions).sort();
-  regionsSorted.forEach(reg => {
-    const resp = respMap[reg];
-    const gerente = resp?.gerente || '—';
+  Object.keys(regions).sort().forEach(reg => {
+    const ger = respMap[reg] || '—';
     const agents = regions[reg];
-    const agentsSorted = Object.keys(agents).sort((a,b) => {
+    const agList = Object.keys(agents).sort((a,b) => {
       const ta = agents[a].rota + agents[a].ausente;
       const tb = agents[b].rota + agents[b].ausente;
       return tb - ta;
     });
 
-    // Region totals
     let rR=0, eR=0, aR=0, oR=0;
-    agentsSorted.forEach(ag => {
-      rR += agents[ag].rota;
-      eR += agents[ag].entregue;
-      aR += agents[ag].ausente;
-      oR += agents[ag].outros;
+    agList.forEach(ag => {
+      rR += agents[ag].rota; eR += agents[ag].entregue;
+      aR += agents[ag].ausente; oR += agents[ag].outros;
       if (agents[ag].rota > 0) agentesEmRota++;
     });
 
     const collapsed = collapsedRegions.has(reg);
-    const regionRow = document.createElement('tr');
-    regionRow.className = 'region-row' + (collapsed ? ' collapsed' : '');
-    regionRow.innerHTML = `
+    const rRow = document.createElement('tr');
+    rRow.className = 'row-region' + (collapsed ? ' collapsed' : '');
+    rRow.innerHTML = `
       <td><span class="toggle-icon">▼</span>${reg}</td>
-      <td><span class="badge badge-gerente">${gerente}</span></td>
-      <td class="num" style="color:var(--red)">${rR || ''}</td>
-      <td class="num" style="color:var(--green)">${eR || ''}</td>
-      <td class="num" style="color:var(--yellow)">${aR || ''}</td>
-      <td class="num" style="color:var(--text-dim)">${oR || ''}</td>
-    `;
-    regionRow.addEventListener('click', () => {
-      if (collapsedRegions.has(reg)) collapsedRegions.delete(reg);
-      else collapsedRegions.add(reg);
-      renderDashboard();
+      <td><span class="badge-g">${ger}</span></td>
+      <td class="r" style="color:var(--red)"><span>${rR||''}</span></td>
+      <td class="r" style="color:var(--green)"><span>${eR||''}</span></td>
+      <td class="r" style="color:var(--yellow)"><span>${aR||''}</span></td>
+      <td class="r" style="color:var(--gray)"><span>${oR||''}</span></td>`;
+    rRow.addEventListener('click', () => {
+      collapsedRegions.has(reg) ? collapsedRegions.delete(reg) : collapsedRegions.add(reg);
+      render();
     });
-    tbody.appendChild(regionRow);
+    tbody.appendChild(rRow);
 
     if (!collapsed) {
-      agentsSorted.forEach(ag => {
+      agList.forEach(ag => {
         const s = agents[ag];
-        const agRow = document.createElement('tr');
-        agRow.className = 'agent-row';
-        agRow.innerHTML = `
-          <td>${ag}</td>
+        const cod = agentCode(ag);
+        const nome = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
+        const svTag = (() => {
+          const rows = data.filter(r => (r['Agente']||'').trim() === ag);
+          const svs = [...new Set(rows.map(r => normalizeServico(r)))];
+          return svs.map(sv => sv === 'ML' ? '<span class="tag tag-ml">ML</span>' :
+            sv === 'SHOPEE' ? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
+        })();
+        const aRow = document.createElement('tr');
+        aRow.className = 'row-agent';
+        aRow.innerHTML = `
+          <td><span style="font-size:11px;color:var(--red);font-weight:700;margin-right:5px;font-family:var(--font-display)">${cod}</span>${nome} ${svTag}</td>
           <td></td>
-          <td class="num" style="color:var(--red)">${s.rota || ''}</td>
-          <td class="num" style="color:var(--green)">${s.entregue || ''}</td>
-          <td class="num" style="color:var(--yellow)">${s.ausente || ''}</td>
-          <td class="num" style="color:var(--text-dim)">${s.outros || ''}</td>
-        `;
-        tbody.appendChild(agRow);
+          <td class="r" style="color:var(--red)"><span>${s.rota||''}</span></td>
+          <td class="r" style="color:var(--green)"><span>${s.entregue||''}</span></td>
+          <td class="r" style="color:var(--yellow)"><span>${s.ausente||''}</span></td>
+          <td class="r" style="color:var(--gray)"><span>${s.outros||''}</span></td>`;
+        tbody.appendChild(aRow);
       });
     }
   });
 
-  document.getElementById('count-label').textContent = agentesEmRota;
+  document.getElementById('count-rota').textContent = agentesEmRota + ' agentes em rota';
 
-  // TOP AGENTS (em rota + ausente = em aberto)
-  const agentTotals = {};
+  // Top agents
+  const agTotals = {};
   data.forEach(row => {
     const ag = (row['Agente'] || 'SEM AGENTE').trim();
-    const s = normalizeStatus(row);
-    if (!agentTotals[ag]) agentTotals[ag] = 0;
-    if (s === 'EM ROTA' || s === 'AUSENTE') agentTotals[ag]++;
+    const st = normalizeStatus(row);
+    if (!agTotals[ag]) agTotals[ag] = {open:0, rota:0, ent:0, aus:0};
+    if (st==='EM ROTA' || st==='AUSENTE') agTotals[ag].open++;
+    if (st==='EM ROTA') agTotals[ag].rota++;
+    if (st==='ENTREGUE') agTotals[ag].ent++;
+    if (st==='AUSENTE') agTotals[ag].aus++;
   });
-  const topAgents = Object.entries(agentTotals)
-    .filter(([,v]) => v >= 5)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0, 10);
-
-  const maxAgent = topAgents[0]?.[1] || 1;
-  document.getElementById('agents-list').innerHTML = topAgents.map(([ag, c], i) => {
-    const pct = Math.round(c / maxAgent * 100);
-    const codMatch = ag.match(/^(\d+)/);
-    const cod = codMatch ? codMatch[1] : '';
+  const topAg = Object.entries(agTotals)
+    .filter(([,v]) => v.open >= 3)
+    .sort((a,b) => b[1].open - a[1].open)
+    .slice(0, 12);
+  const maxAg = topAg[0]?.[1].open || 1;
+  document.getElementById('agents-list').innerHTML = topAg.map(([ag, v], i) => {
+    const pct = Math.round(v.open / maxAg * 100);
+    const cod = agentCode(ag);
     const nome = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
     return `<div class="agent-item">
-      <div class="agent-num">${i+1}</div>
-      <div class="agent-name" title="${ag}">
-        ${cod ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--red);font-weight:700;margin-right:4px">${cod}</span>` : ''}${nome}
-      </div>
-      <div class="agent-bar-wrap"><div class="agent-bar" style="width:${pct}%"></div></div>
-      <div class="agent-count">${c}</div>
+      <div class="a-rank">${i+1}</div>
+      <div class="a-name" title="${ag}"><span class="a-cod">${cod}</span> ${nome}</div>
+      <div class="a-bar-wrap"><div class="a-bar" style="width:${pct}%"></div></div>
+      <div class="a-count">${v.open}</div>
     </div>`;
-  }).join('') || '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px">Nenhum agente com 5+ pedidos</div>';
+  }).join('') || '<div style="padding:16px 14px;color:var(--text-dim);font-size:12px;text-align:center">Nenhum agente com 3+ pedidos em aberto</div>';
 }
+
+/* ── RENDER TEMPO ── */
+function renderTempo() {
+  const gF = document.getElementById('t-gerente').value;
+  const svF = document.getElementById('t-servico').value;
+  const sort = document.getElementById('t-sort').value;
+
+  // Only em rota rows
+  const emRota = rawData.filter(r => {
+    const st = normalizeStatus(r);
+    if (st !== 'EM ROTA') return false;
+    if (gF && getGerente(r) !== gF) return false;
+    if (svF && normalizeServico(r) !== svF) return false;
+    return true;
+  });
+
+  // Group by agent
+  const byAgent = {};
+  emRota.forEach(r => {
+    const ag = (r['Agente'] || 'SEM AGENTE').trim();
+    if (!byAgent[ag]) byAgent[ag] = [];
+    byAgent[ag].push(r);
+  });
+
+  // Compute stats
+  let agents = Object.entries(byAgent).map(([ag, rows]) => {
+    const horas = horasMaisAntiga(rows);
+    const svs = [...new Set(rows.map(r => normalizeServico(r)))];
+    const gerente = getGerente(rows[0]);
+    return { ag, rows, horas, qtd: rows.length, svs, gerente };
+  });
+
+  if (sort === 'tempo') agents.sort((a,b) => (b.horas||0) - (a.horas||0));
+  else if (sort === 'pedidos') agents.sort((a,b) => b.qtd - a.qtd);
+  else agents.sort((a,b) => {
+    const alertScore = h => h === null ? 0 : h < 3 ? 0 : h < 5 ? 1 : h < 8 ? 2 : 3;
+    return alertScore(b.horas) - alertScore(a.horas);
+  });
+
+  const maxH = Math.max(...agents.map(a => a.horas || 0), 1);
+
+  const container = document.getElementById('tempo-list');
+  if (!agents.length) {
+    container.innerHTML = '<div class="empty"><h3>Sem dados em rota</h3><p>Carregue uma planilha com pedidos em rota para ver o tempo.</p></div>';
+    return;
+  }
+
+  container.innerHTML = `<div class="tempo-card">${agents.map((a, i) => {
+    const cod = agentCode(a.ag);
+    const nome = a.ag.replace(/^\d+\s*[-–]\s*/, '') || a.ag;
+    const col = tempoColor(a.horas);
+    const pct = a.horas ? Math.round(a.horas / maxH * 100) : 0;
+    const svTags = a.svs.map(sv => sv === 'ML' ? '<span class="tag tag-ml">ML</span>' : sv === 'SHOPEE' ? '<span class="tag tag-shopee">SHP</span>' : '').join(' ');
+
+    return `<div class="tempo-agent-row" onclick="abrirDetalhesTempo('${a.ag.replace(/'/g,"\\'")}')">
+      <div class="t-rank">${i+1}</div>
+      <div class="t-info">
+        <div class="t-name"><span style="font-family:var(--font-display);color:var(--red);font-size:12px;font-weight:700;margin-right:5px">${cod}</span>${nome} ${svTags}</div>
+        <div class="t-meta">
+          <span style="color:var(--text-dim)">Ger: ${a.gerente||'—'}</span>
+          <span>${a.qtd} pedido${a.qtd!==1?'s':''} em rota</span>
+        </div>
+      </div>
+      <div class="t-time-bar-wrap">
+        <div class="t-time-bar-track"><div class="t-time-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="t-time-label" style="color:${col}">${tempoLabel(a.horas)}</div>
+      </div>
+      <div class="t-count" style="color:${col}">${a.qtd}</div>
+      <div class="t-alert">${tempoAlert(a.horas)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function abrirDetalhesTempo(ag) {
+  // Switch to busca tab and search
+  document.getElementById('busca-cod').value = agentCode(ag);
+  switchTab('busca');
+  buscarAgente();
+}
+
+/* ── BUSCA AGENTE ── */
+function buscarAgente() {
+  const cod = document.getElementById('busca-cod').value.trim();
+  const result = document.getElementById('busca-result');
+  if (!cod) return;
+  if (!rawData.length) {
+    result.innerHTML = '<div class="no-result">⚠️ Carregue uma planilha primeiro.</div>';
+    return;
+  }
+
+  const rows = rawData.filter(r => agentCode(r['Agente'] || '') === cod);
+  if (!rows.length) {
+    result.innerHTML = `<div class="no-result">Nenhum agente encontrado com código <strong>${cod}</strong> na planilha atual.</div>`;
+    return;
+  }
+
+  const agNome = (rows[0]['Agente'] || '').trim().replace(/^\d+\s*[-–]\s*/, '');
+  const reg = (rows[0]['Regiao Destino'] || rows[0]['Região Destino'] || '').trim().toUpperCase();
+  const gerente = getGerente(rows[0]);
+  const svs = [...new Set(rows.map(r => normalizeServico(r)))];
+
+  let rota=0, entregue=0, ausente=0, outros=0;
+  rows.forEach(r => {
+    const st = normalizeStatus(r);
+    if (st==='EM ROTA') rota++;
+    else if (st==='ENTREGUE') entregue++;
+    else if (st==='AUSENTE') ausente++;
+    else outros++;
+  });
+
+  const totalAberto = rota + ausente;
+  const svTagsHtml = svs.map(sv => sv==='ML'?'<span class="tag tag-ml">Mercado Livre</span>':sv==='SHOPEE'?'<span class="tag tag-shopee">Shopee</span>':'').join(' ');
+
+  // Pedidos list
+  const pedidosHtml = rows.map(r => {
+    const st = normalizeStatus(r);
+    const num = (r['Remessa'] || r['Nº Pedido'] || r['N° Pedido'] || Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—');
+    const data = r['Data Historico'] || r['Data Histórico'] || '';
+    const col = STATUS_COLORS[st] || 'var(--gray)';
+    const bg = STATUS_BG[st] || 'rgba(107,114,128,0.12)';
+    return `<div class="pedido-row">
+      <div class="pedido-num">${num}</div>
+      <div class="pedido-status" style="background:${bg};color:${col}">${st}</div>
+      <div class="pedido-data">${data ? data.slice(0,16) : ''}</div>
+    </div>`;
+  }).join('');
+
+  const horasEmRota = horasMaisAntiga(rows.filter(r => normalizeStatus(r)==='EM ROTA'));
+  const tempoInfo = horasEmRota !== null
+    ? `<span>⏱ ${tempoLabel(horasEmRota)} em rota ${tempoAlert(horasEmRota)}</span>`
+    : '';
+
+  const finalizadoBanner = totalAberto === 0 ? `
+    <div class="finalizado-banner">
+      <div class="icon">✅</div>
+      <h3>Agente Finalizado!</h3>
+      <p>Todos os ${rows.length} pedidos foram baixados (entregues, ausentes ou outros). Não há pedidos em rota.</p>
+    </div>` : '';
+
+  result.innerHTML = `
+    <div class="agent-result-card">
+      <div class="agent-result-header">
+        <div class="agent-result-name">
+          <span style="color:var(--red);font-size:20px">${cod}</span>
+          — ${agNome}
+        </div>
+        <div class="agent-result-meta">
+          <span>📍 ${reg||'—'}</span>
+          <span>👤 Ger: ${gerente||'—'}</span>
+          ${svTagsHtml}
+          ${tempoInfo}
+        </div>
+      </div>
+      <div class="agent-status-grid">
+        <div class="status-tile">
+          <div class="status-tile-val" style="color:var(--red)">${rota}</div>
+          <div class="status-tile-label">Em Rota</div>
+        </div>
+        <div class="status-tile">
+          <div class="status-tile-val" style="color:var(--green)">${entregue}</div>
+          <div class="status-tile-label">Entregue</div>
+        </div>
+        <div class="status-tile">
+          <div class="status-tile-val" style="color:var(--yellow)">${ausente}</div>
+          <div class="status-tile-label">Ausente</div>
+        </div>
+        <div class="status-tile">
+          <div class="status-tile-val" style="color:var(--gray)">${outros}</div>
+          <div class="status-tile-label">Outros</div>
+        </div>
+      </div>
+      ${finalizadoBanner}
+      <div class="card-head" style="margin-top:0">
+        <span class="section-title">${rows.length} Pedidos</span>
+        ${totalAberto > 0 ? `<span class="count-pill">${totalAberto} em aberto</span>` : '<span style="color:var(--green);font-size:11px;font-weight:700">✓ TUDO BAIXADO</span>'}
+      </div>
+      <div class="pedidos-list">${pedidosHtml}</div>
+    </div>`;
+}
+
+/* ── TAB SWITCH ── */
+function switchTab(id) {
+  if (id === 'nova') {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane-nova').classList.add('active');
+    document.querySelectorAll('.tab-btn')[3].classList.add('active');
+    return;
+  }
+  activeTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById('pane-' + id);
+  if (pane) pane.classList.add('active');
+  const idx = ['operacional','busca','tempo'].indexOf(id);
+  if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if (id === 'tempo') renderTempo();
+}
+
+/* ── LOAD DATA ── */
+function dataDoArquivo(data) {
+  // Pega a Data Histórico mais recente dentre todos os registros
+  let latest = null;
+  data.forEach(r => {
+    const d = parseDataHist(r['Data Historico'] || r['Data Histórico']);
+    if (d && (!latest || d > latest)) latest = d;
+  });
+  if (!latest) return null;
+  return latest;
+}
+
+function loadData(data, label) {
+  rawData = data;
+  const ts = dataDoArquivo(data);
+  const snapText = ts
+    ? ts.toLocaleDateString('pt-BR') + ' ' + ts.toTimeString().slice(0,5)
+    : label || '—';
+  document.getElementById('snap-time').textContent = snapText;
+  populateFilters();
+  render();
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  if (activeTab === 'tempo') renderTempo();
+}
+
+async function autoLoadFromSheets() {
+  const status = document.getElementById('auto-load-status');
+  try {
+    status.textContent = 'Conectando ao Google Sheets...';
+    const resp = await fetch(SHEETS_URL);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const csv = await resp.text();
+    const wb = XLSX.read(csv, {type:'string'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {defval:''});
+    if (!data.length) throw new Error('Vazio');
+    loadData(data);
+  } catch(e) {
+    status.textContent = '⚠️ Erro ao conectar. Importe o CSV manualmente.';
+    status.style.color = 'var(--yellow)';
+  }
+}
+
+async function reloadSheets() {
+  document.getElementById('snap-time').textContent = 'Carregando...';
+  await autoLoadFromSheets();
+  switchTab('operacional');
+}
+
+function processFile(file) {
+  const reader = new FileReader();
+  const isCSV = file.name.toLowerCase().endsWith('.csv');
+  reader.onload = e => {
+    try {
+      const wb = isCSV
+        ? XLSX.read(e.target.result, {type:'binary', raw:false})
+        : XLSX.read(e.target.result, {type:'array'});
+      const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+      loadData(data);
+      switchTab('operacional');
+    } catch(err) { alert('Erro: ' + err.message); }
+  };
+  isCSV ? reader.readAsBinaryString(file) : reader.readAsArrayBuffer(file);
+}
+
+/* ── EVENTS ── */
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const fileInput2 = document.getElementById('file-input2');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); processFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if(e.target.files[0]) processFile(e.target.files[0]); });
+fileInput2.addEventListener('change', e => { if(e.target.files[0]) processFile(e.target.files[0]); });
+
+autoLoadFromSheets();
 </script>
-</body>
-</html>
