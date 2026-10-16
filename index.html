@@ -684,6 +684,38 @@ td.r span { display: inline-block; min-width: 28px; }
 .tag-ml      { background: var(--yellow-dim); color: var(--yellow); }
 .tag-shopee  { background: var(--blue-dim); color: var(--blue); }
 .tag-outros  { background: rgba(107,114,128,0.12); color: var(--gray); }
+
+/* ── CEP CARD ── */
+.cep-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.cep-row:last-child { border-bottom: none; }
+.cep-row:hover { background: rgba(255,255,255,0.025); }
+.cep-prefix {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  min-width: 52px;
+  letter-spacing: 1px;
+}
+.cep-bars { flex: 1; min-width: 0; }
+.cep-bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.cep-bar-label { font-size: 10px; color: var(--text-dim); min-width: 58px; text-align: right; font-weight: 700; letter-spacing: 0.5px; }
+.cep-bar-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.cep-bar-fill { height: 100%; border-radius: 3px; }
+.cep-bar-val { font-family: var(--font-display); font-size: 13px; font-weight: 700; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+.cep-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; min-width: 60px; }
+.cep-total { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+.cep-taxa { font-size: 10px; color: var(--text-dim); font-weight: 700; letter-spacing: 0.5px; }
+.cep-taxa.ok { color: var(--green); }
+.cep-taxa.warn { color: var(--yellow); }
+.cep-taxa.bad { color: var(--red); }
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -716,6 +748,7 @@ td.r span { display: inline-block; min-width: 28px; }
     <button class="tab-btn active" onclick="switchTab('operacional')">📊 Operacional</button>
     <button class="tab-btn" onclick="switchTab('busca')">🔍 Busca Agente</button>
     <button class="tab-btn" onclick="switchTab('tempo')">⏱ Tempo em Rota</button>
+    <button class="tab-btn" onclick="switchTab('cep')">📍 CEP Destino</button>
     <button class="tab-btn" onclick="switchTab('nova')">↑ Nova Planilha</button>
   </nav>
 
@@ -863,6 +896,37 @@ td.r span { display: inline-block; min-width: 28px; }
       <div id="tempo-list"></div>
     </div>
 
+    <!-- ══ ABA CEP DESTINO ══ -->
+    <div class="tab-pane" id="pane-cep">
+      <div class="tempo-header" style="margin-top:14px">
+        <strong>Visão por CEP Destino</strong> — agrupa pedidos pelos 5 primeiros dígitos do CEP (bairro/zona), mostrando concentração de rotas, baixas e problemas por área geográfica.
+      </div>
+      <!-- Sub-filtros CEP -->
+      <div class="filters-bar" style="margin-bottom:12px">
+        <select class="filter-select" id="c-gerente" onchange="renderCep()" style="flex:1 1 130px">
+          <option value="">Todos os Gerentes</option>
+        </select>
+        <select class="filter-select" id="c-servico" onchange="renderCep()" style="flex:1 1 130px">
+          <option value="">ML + Shopee</option>
+          <option value="ML">Mercado Livre</option>
+          <option value="SHOPEE">Shopee</option>
+        </select>
+        <select class="filter-select" id="c-status" onchange="renderCep()" style="flex:1 1 130px">
+          <option value="">Todos os Status</option>
+          <option value="EM ROTA">Em Rota</option>
+          <option value="ENTREGUE">Entregue</option>
+          <option value="AUSENTE">Ausente</option>
+        </select>
+        <select class="filter-select" id="c-sort" onchange="renderCep()" style="flex:1 1 130px">
+          <option value="total">Ordenar: Total</option>
+          <option value="rota">Ordenar: Em Rota</option>
+          <option value="ausente">Ordenar: Ausente</option>
+          <option value="taxa">Ordenar: % Entregue</option>
+        </select>
+      </div>
+      <div id="cep-list"></div>
+    </div>
+
     <!-- ══ ABA NOVA PLANILHA ══ -->
     <div class="tab-pane" id="pane-nova">
       <div style="display:flex;align-items:center;justify-content:center;min-height:50vh;padding:24px 0">
@@ -928,9 +992,17 @@ function normalizeStatus(row) {
   const ecomFirst = ecom.split('<QL>')[0].trim();
 
   if (serv === 'ML') {
+    // Col F (Historico Ecommerce): se começa com "A CAMINHO" → pedido ainda na rua
     if (ecomFirst.startsWith('A CAMINHO')) return 'EM ROTA';
+    // Caso contrário o pedido foi baixado — status real está em col D (Historico)
     if (hist === 'ENTREGUE') return 'ENTREGUE';
     if (hist === 'AUSENTE') return 'AUSENTE';
+    if (hist === 'RECUSADO') return 'RECUSADO';
+    if (hist === 'CANCELADO') return 'CANCELADO';
+    if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA'; // fallback Tracken genérico
+    if (hist === 'DEVOLVIDO') return 'DEVOLVIDO';
+    if (hist === 'CEP ERRADO') return 'CEP ERRADO';
+    if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
     return hist || 'OUTROS';
   }
   if (serv === 'SHOPEE') {
@@ -939,12 +1011,30 @@ function normalizeStatus(row) {
     if (hist === 'AUSENTE') return 'AUSENTE';
     if (hist === 'RECUSADO') return 'RECUSADO';
     if (hist === 'CANCELADO') return 'CANCELADO';
+    if (hist === 'DEVOLVIDO') return 'DEVOLVIDO';
+    if (hist === 'CEP ERRADO') return 'CEP ERRADO';
+    if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
     return hist || 'OUTROS';
   }
+  // OUTROS serviços — mesma lógica col D
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
   if (hist === 'ENTREGUE') return 'ENTREGUE';
   if (hist === 'AUSENTE') return 'AUSENTE';
   return hist || 'OUTROS';
+}
+
+// Retorna o status "bruto" da col D para exibição no número do pedido (ML e Shopee igual)
+function rawHistorico(row) {
+  return (row['Historico'] || row['Histórico'] || '').trim();
+}
+
+// CEP Destino — col J
+function getCepDestino(row) {
+  return (row['Cep Destino'] || row['CEP Destino'] || row['Cep'] || row['CEP'] || '').trim().replace(/\D/g,'');
+}
+function getCepPrefixo(row) {
+  const cep = getCepDestino(row);
+  return cep.slice(0, 5) || '—';
 }
 
 // Parse "DD/MM/YYYY HH:mm" or "DD/MM/YYYY HH:mm:ss" → Date
@@ -1043,6 +1133,13 @@ function populateFilters() {
   const tgSel = document.getElementById('t-gerente');
   tgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
   gerentes.forEach(g => tgSel.innerHTML += `<option>${g}</option>`);
+
+  // also cep tab filters
+  const cgSel = document.getElementById('c-gerente');
+  if (cgSel) {
+    cgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
+    gerentes.forEach(g => cgSel.innerHTML += `<option>${g}</option>`);
+  }
 }
 
 function clearFilters() {
@@ -1422,22 +1519,135 @@ function buscarAgente() {
 }
 
 /* ── TAB SWITCH ── */
-function switchTab(id) {
-  if (id === 'nova') {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.getElementById('pane-nova').classList.add('active');
-    document.querySelectorAll('.tab-btn')[3].classList.add('active');
+/* ── RENDER CEP DESTINO ── */
+function renderCep() {
+  const gerFil  = (document.getElementById('c-gerente')?.value || '').trim().toUpperCase();
+  const servFil = (document.getElementById('c-servico')?.value || '').trim().toUpperCase();
+  const stFil   = (document.getElementById('c-status')?.value  || '').trim().toUpperCase();
+  const sortBy  = document.getElementById('c-sort')?.value || 'total';
+
+  // Filter base data
+  let base = rawData.filter(r => {
+    if (gerFil  && getGerente(r).toUpperCase() !== gerFil)  return false;
+    if (servFil && normalizeServico(r) !== servFil)          return false;
+    if (stFil   && normalizeStatus(r)  !== stFil)            return false;
+    return true;
+  });
+
+  // Group by 5-digit CEP prefix
+  const groups = {};
+  base.forEach(r => {
+    const prefix = getCepPrefixo(r);
+    if (!groups[prefix]) groups[prefix] = { rota:0, entregue:0, ausente:0, outros:{}, pedidos:[] };
+    const st = normalizeStatus(r);
+    const pedido = r['Numero Pedido'] || r['Número Pedido'] || r['Pedido'] || r['Remessa'] || r['NF'] || '';
+    groups[prefix].pedidos.push({ st, pedido, hist: rawHistorico(r), serv: normalizeServico(r) });
+    if (st === 'EM ROTA')       groups[prefix].rota++;
+    else if (st === 'ENTREGUE') groups[prefix].entregue++;
+    else if (st === 'AUSENTE')  groups[prefix].ausente++;
+    else {
+      groups[prefix].outros[st] = (groups[prefix].outros[st] || 0) + 1;
+    }
+  });
+
+  // Convert to array
+  let rows = Object.entries(groups).map(([prefix, d]) => {
+    const outrosTotal = Object.values(d.outros).reduce((a,b) => a+b, 0);
+    const total = d.rota + d.entregue + d.ausente + outrosTotal;
+    const taxa = total > 0 ? Math.round(d.entregue / total * 100) : 0;
+    return { prefix, ...d, outrosTotal, total, taxa };
+  });
+
+  // Sort
+  if (sortBy === 'rota')    rows.sort((a,b) => b.rota - a.rota);
+  else if (sortBy === 'ausente') rows.sort((a,b) => b.ausente - a.ausente);
+  else if (sortBy === 'taxa')    rows.sort((a,b) => b.taxa - a.taxa);
+  else                           rows.sort((a,b) => b.total - a.total);
+
+  const el = document.getElementById('cep-list');
+  if (!rows.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim)">Nenhum dado para os filtros selecionados</div>';
     return;
   }
+
+  const maxRota     = Math.max(...rows.map(r => r.rota), 1);
+  const maxEntregue = Math.max(...rows.map(r => r.entregue), 1);
+  const maxAusente  = Math.max(...rows.map(r => r.ausente), 1);
+  const maxOutros   = Math.max(...rows.map(r => r.outrosTotal), 1);
+
+  el.innerHTML = rows.map(row => {
+    const taxaCls = row.taxa >= 80 ? 'ok' : row.taxa >= 50 ? 'warn' : 'bad';
+
+    // Build detail lines for outros breakdown
+    const outrosDetail = Object.entries(row.outros)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => `<span style="font-size:10px;color:var(--text-dim);margin-right:10px">${k}: <b style="color:var(--text)">${v}</b></span>`)
+      .join('');
+
+    // Pedido numbers per status (show up to 8, then "…+N")
+    function pedidosList(arr, maxShow) {
+      if (!arr.length) return '';
+      const shown = arr.slice(0, maxShow).filter(p => p).join(', ');
+      const extra = arr.length > maxShow ? ` <span style="color:var(--text-dim)">+${arr.length - maxShow}</span>` : '';
+      return shown ? `<div style="font-size:10px;color:var(--text-dim);margin-top:2px;word-break:break-all">${shown}${extra}</div>` : '';
+    }
+
+    const rotaPeds    = row.pedidos.filter(p => p.st === 'EM ROTA').map(p => p.pedido);
+    const entPeds     = row.pedidos.filter(p => p.st === 'ENTREGUE').map(p => p.pedido);
+    const ausPeds     = row.pedidos.filter(p => p.st === 'AUSENTE').map(p => p.pedido);
+    const outrosPeds  = row.pedidos.filter(p => p.st !== 'EM ROTA' && p.st !== 'ENTREGUE' && p.st !== 'AUSENTE').map(p => p.pedido);
+
+    return `<div class="cep-row" style="flex-wrap:wrap;gap:10px">
+      <div class="cep-prefix">${row.prefix}</div>
+      <div class="cep-bars" style="flex:1;min-width:160px">
+        ${row.rota > 0 ? `
+        <div class="cep-bar-row">
+          <span class="cep-bar-label" style="color:var(--blue)">EM ROTA</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.rota/maxRota*100)}%;background:var(--blue)"></div></div>
+          <span class="cep-bar-val" style="color:var(--blue)">${row.rota}</span>
+        </div>
+        ${pedidosList(rotaPeds, 6)}` : ''}
+        ${row.entregue > 0 ? `
+        <div class="cep-bar-row">
+          <span class="cep-bar-label" style="color:var(--green)">ENTREGUE</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.entregue/maxEntregue*100)}%;background:var(--green)"></div></div>
+          <span class="cep-bar-val" style="color:var(--green)">${row.entregue}</span>
+        </div>
+        ${pedidosList(entPeds, 4)}` : ''}
+        ${row.ausente > 0 ? `
+        <div class="cep-bar-row">
+          <span class="cep-bar-label" style="color:var(--red)">AUSENTE</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.ausente/maxAusente*100)}%;background:var(--red)"></div></div>
+          <span class="cep-bar-val" style="color:var(--red)">${row.ausente}</span>
+        </div>
+        ${pedidosList(ausPeds, 4)}` : ''}
+        ${row.outrosTotal > 0 ? `
+        <div class="cep-bar-row">
+          <span class="cep-bar-label" style="color:var(--yellow)">OUTROS</span>
+          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.outrosTotal/maxOutros*100)}%;background:var(--yellow)"></div></div>
+          <span class="cep-bar-val" style="color:var(--yellow)">${row.outrosTotal}</span>
+        </div>
+        ${outrosDetail ? `<div style="margin-top:3px">${outrosDetail}</div>` : ''}
+        ${pedidosList(outrosPeds, 4)}` : ''}
+      </div>
+      <div class="cep-stats">
+        <div class="cep-total">${row.total}</div>
+        <div class="cep-taxa ${taxaCls}">${row.taxa}% ENT</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(id) {
   activeTab = id;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   const pane = document.getElementById('pane-' + id);
   if (pane) pane.classList.add('active');
-  const idx = ['operacional','busca','tempo'].indexOf(id);
+  const idx = ['operacional','busca','tempo','cep','nova'].indexOf(id);
   if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
   if (id === 'tempo') renderTempo();
+  if (id === 'cep') renderCep();
 }
 
 /* ── LOAD DATA ── */
