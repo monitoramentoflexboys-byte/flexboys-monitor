@@ -1699,14 +1699,32 @@ function renderTempo() {
   const newAgentQtd = {};
   agents.forEach(a => { newAgentQtd[agentCode(a.ag)] = a.qtd; });
 
-  // Badge de delta por agente
+  // Badge de delta por agente — ciclo de 15 min
   function agentDelta(cod, qtdAtual) {
     const prev = previousAgentQtd[cod];
-    if (prev === undefined) return ''; // primeira carga
-    const diff = qtdAtual - prev;
-    if (diff === 0) return `<span style="font-size:10px;color:var(--warn);margin-left:6px" title="Sem alteração desde última atualização">• sem mudança</span>`;
-    if (diff < 0)  return `<span style="font-size:10px;color:var(--ok);margin-left:6px" title="Baixou ${Math.abs(diff)} pedidos">↓ ${Math.abs(diff)}</span>`;
-    return `<span style="font-size:10px;color:var(--ink-mid);margin-left:6px">↑ ${diff}</span>`;
+    if (prev === undefined) return ''; // primeira carga, sem referência
+
+    const diff    = qtdAtual - prev;  // negativo = baixou pedidos (bom)
+    const baixou  = -diff;            // quantos baixou (positivo = progresso)
+    const minimo  = prev >= 30 ? 5 : 2; // mínimo esperado em 15min
+
+    if (baixou === 0 && prev > 0) {
+      // Parado — não baixou nada em 15 min
+      return `<span style="font-size:10px;font-weight:700;color:#FF4444;margin-left:8px;background:rgba(255,68,68,0.15);padding:2px 6px;border-radius:4px" title="Nenhum pedido baixado no último ciclo de 15 min">🛑 parado</span>`;
+    }
+    if (baixou > 0 && baixou < minimo) {
+      // Ritmo baixo — baixou, mas menos que o esperado
+      return `<span style="font-size:10px;font-weight:600;color:var(--warn);margin-left:8px;background:rgba(245,166,35,0.15);padding:2px 6px;border-radius:4px" title="Baixou apenas ${baixou} pedido(s) — esperado mínimo de ${minimo} em 15min">⚠️ ritmo baixo · ↓${baixou}</span>`;
+    }
+    if (baixou >= minimo) {
+      // Progresso normal
+      return `<span style="font-size:10px;color:var(--ok);margin-left:6px" title="Baixou ${baixou} pedidos no último ciclo">↓ ${baixou}</span>`;
+    }
+    if (diff > 0) {
+      // Recebeu mais pedidos
+      return `<span style="font-size:10px;color:var(--ink-mid);margin-left:6px">↑ ${diff}</span>`;
+    }
+    return '';
   }
 
   // Fundo tingido por nível de alerta
