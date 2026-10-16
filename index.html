@@ -229,7 +229,7 @@ body::before {
 .upload-card input[type=file] { display: none; }
 
 /* ── APP ── */
-#app { display: none; flex-direction: column; height: 100%; }
+#app { display: none; flex-direction: column; min-height: 100%; }
 #app.visible { display: flex; }
 
 /* ── TAB NAV ── */
@@ -271,7 +271,7 @@ body::before {
 .tab-btn .tb-icon { font-size: 14px; }
 
 /* ── CONTENT ── */
-.tab-content { overflow-y: auto; flex: 1; }
+.tab-content { overflow-y: auto; flex: 1; min-height: 0; }
 .tab-pane {
   display: none;
   padding: 20px max(16px, env(safe-area-inset-left, 0px));
@@ -482,7 +482,7 @@ body::before {
   border-radius: 12px;
   overflow: hidden;
 }
-.table-wrap { overflow-x: auto; max-height: 62vh; overflow-y: auto; }
+.table-wrap { overflow-x: auto; }
 
 table {
   width: 100%;
@@ -935,6 +935,7 @@ td.r span { display: inline-block; min-width: 24px; }
   <div class="header-label">Monitoramento Operacional</div>
   <div class="snap-pill">
     <div class="snap-dot"></div>
+    <span style="font-size:10px;color:var(--ink-dim);font-family:var(--font-ui);letter-spacing:0.3px;margin-right:2px">Atualizado</span>
     <span id="snap-time">—</span>
   </div>
 </header>
@@ -1114,6 +1115,7 @@ td.r span { display: inline-block; min-width: 24px; }
           <option value="pedidos">Mais Pedidos</option>
           <option value="alerta">Nível de Alerta</option>
         </select>
+        <button class="btn-ghost" onclick="clearTempoFilters()">Limpar</button>
       </div>
 
       <div id="tempo-list"></div>
@@ -1146,6 +1148,7 @@ td.r span { display: inline-block; min-width: 24px; }
           <option value="ausente">Por Ausente</option>
           <option value="taxa">Por % Entregue</option>
         </select>
+        <button class="btn-ghost" onclick="clearCepFilters()">Limpar</button>
       </div>
       <div id="cep-list"></div>
     </div>
@@ -1367,6 +1370,26 @@ function clearFilters() {
   render();
 }
 
+function clearTempoFilters() {
+  ['t-gerente','t-servico'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const sort = document.getElementById('t-sort');
+  if (sort) sort.value = 'tempo';
+  renderTempo();
+}
+
+function clearCepFilters() {
+  ['c-gerente','c-servico','c-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const sort = document.getElementById('c-sort');
+  if (sort) sort.value = 'total';
+  renderCep();
+}
+
 /* ── RENDER OPERACIONAL ── */
 function render() {
   const data = getFiltered();
@@ -1572,8 +1595,8 @@ function renderTempo() {
   const sort = document.getElementById('t-sort').value;
 
   const emRota = rawData.filter(r => {
-    if (normalizeStatus(r) !== 'EM ROTA') return false;
-    if (gF  && getGerente(r) !== gF)      return false;
+    if (normalizeStatus(r)  !== 'EM ROTA') return false;
+    if (gF  && getGerente(r)       !== gF)  return false;
     if (svF && normalizeServico(r) !== svF) return false;
     return true;
   });
@@ -1743,15 +1766,15 @@ function buscarAgente() {
 
 /* ── RENDER CEP DESTINO ── */
 function renderCep() {
-  const gerFil  = (document.getElementById('c-gerente')?.value || '').trim().toUpperCase();
-  const servFil = (document.getElementById('c-servico')?.value || '').trim().toUpperCase();
-  const stFil   = (document.getElementById('c-status')?.value  || '').trim().toUpperCase();
+  const gerFil  = (document.getElementById('c-gerente')?.value  || '').trim();
+  const servFil = (document.getElementById('c-servico')?.value  || '').trim();
+  const stFil   = (document.getElementById('c-status')?.value   || '').trim();
   const sortBy  = document.getElementById('c-sort')?.value || 'total';
 
   let base = rawData.filter(r => {
-    if (gerFil  && getGerente(r).toUpperCase() !== gerFil) return false;
-    if (servFil && normalizeServico(r) !== servFil)         return false;
-    if (stFil   && normalizeStatus(r)  !== stFil)           return false;
+    if (gerFil  && getGerente(r)       !== gerFil)  return false;
+    if (servFil && normalizeServico(r) !== servFil) return false;
+    if (stFil   && normalizeStatus(r)  !== stFil)   return false;
     return true;
   });
 
@@ -1857,6 +1880,13 @@ function switchTab(id) {
   if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
   if (id === 'tempo') renderTempo();
   if (id === 'cep')   renderCep();
+  // Ao entrar na aba busca, limpa resultado anterior e foca o campo
+  if (id === 'busca') {
+    const cod = document.getElementById('busca-cod');
+    const res = document.getElementById('busca-result');
+    if (res && !cod.value) res.innerHTML = '';
+    if (cod) setTimeout(() => cod.focus(), 80);
+  }
 }
 
 /* ── LOAD DATA ── */
