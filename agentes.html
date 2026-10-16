@@ -546,6 +546,23 @@ const AGENT_GERENTE_OVERRIDE = {
   '1626': 'RODRIGO'  // FELIPE WISNIEWSKI ARMAGNI
 };
 
+function parseDataHist(str) {
+  if (!str) return null;
+  const s = (str + '').trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
+  return null;
+}
+
+function dataDoArquivo(data) {
+  let latest = null;
+  data.forEach(r => {
+    const d = parseDataHist(r['Data Historico'] || r['Data Histórico']);
+    if (d && (!latest || d > latest)) latest = d;
+  });
+  return latest;
+}
+
 function getGerente(row) {
   const ag = (row['Agente'] || '').trim();
   const codMatch = ag.match(/^(\d+)/);
@@ -630,9 +647,10 @@ async function loadData() {
     const ws = wb.Sheets[wb.SheetNames[0]];
     rawData = XLSX.utils.sheet_to_json(ws, { defval: '' });
     if (rawData.length === 0) throw new Error('Vazia');
-    const now = new Date();
-    document.getElementById('header-time').textContent =
-      now.toLocaleDateString('pt-BR') + ' ' + now.toTimeString().slice(0,5);
+    const ts = dataDoArquivo(rawData);
+    document.getElementById('header-time').textContent = ts
+      ? ts.toLocaleDateString('pt-BR') + ' ' + ts.toTimeString().slice(0,5)
+      : '—';
     populateFilters();
     render();
   } catch(e) {
