@@ -2111,12 +2111,48 @@ function loadData(data, label, snapTime) {
   if (activeTab === 'cep')   renderCep();
 }
 
-// ══ CONFIGURAÇÃO: GID da aba Controle ══
-// Para encontrar o gid: abra o Google Sheets → clique na aba "Controle" →
-// veja a URL: ...#gid=XXXXXXXX — copie o número e cole em SHEETS_CONTROLE_GID
-const SHEETS_CONTROLE_GID = "1344066483"; // aba Controle
-const SHEETS_BASE_ID = "2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI";
-const SHEETS_CONTROLE_URL = `https://docs.google.com/spreadsheets/d/e/${SHEETS_BASE_ID}/pub?gid=${SHEETS_CONTROLE_GID}&single=true&output=csv`;
+// ══ CONFIGURAÇÃO: GIDs das abas ══
+// Para encontrar o gid: abra o Google Sheets → clique na aba → veja a URL: ...#gid=XXXXXXXX
+const SHEETS_BASE_ID      = "2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI";
+const SHEETS_CONTROLE_GID  = "1344066483"; // aba Controle  (B2 = timestamp da última atualização)
+const SHEETS_HISTORICO_GID = "1196155193"; // aba Historico (snapshot anterior)
+
+const SHEETS_CONTROLE_URL  = `https://docs.google.com/spreadsheets/d/e/${SHEETS_BASE_ID}/pub?gid=${SHEETS_CONTROLE_GID}&single=true&output=csv`;
+const SHEETS_HISTORICO_URL = `https://docs.google.com/spreadsheets/d/e/${SHEETS_BASE_ID}/pub?gid=${SHEETS_HISTORICO_GID}&single=true&output=csv`;
+
+// Busca aba Historico (snapshot anterior salvo pelo Python) e retorna
+// mapa { codigoAgente → qtdPedidos } para comparação universal.
+// Funciona para QUALQUER pessoa que abrir o link — não depende de sessão.
+async function fetchHistoricoQtd() {
+  // Se o GID ainda não foi configurado, retorna vazio silenciosamente
+  if (SHEETS_HISTORICO_GID === 'COLE_O_GID_DA_ABA_HISTORICO_AQUI') return {};
+  try {
+    const resp = await fetch(SHEETS_HISTORICO_URL);
+    if (!resp.ok) return {};
+    const csv = await resp.text();
+    // Detecta página de erro HTML do Sheets (GID inválido)
+    if (csv.trim().startsWith('<!')) return {};
+    const wb   = XLSX.read(csv, {type:'string'});
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    if (!rows.length) return {};
+
+    // Agrupa por agente — mesmo critério do renderTempo()
+    const mapa = {};
+    rows.forEach(r => {
+      const st = normalizeStatus(r);
+      if (st !== 'EM ROTA' && st !== 'AUSENTE') return; // só pedidos ativos
+      const ag  = r['Agente'] || r['AGENTE'] || '';
+      const cod = agentCode(ag);
+      if (!cod) return;
+      const realCod = AGENT_OVERRIDE[cod] ? cod : cod; // mantém código original
+      mapa[cod] = (mapa[cod] || 0) + 1;
+    });
+    return mapa;
+  } catch(e) {
+    return {};
+  }
+}
 
 async function fetchSnapTime() {
   try {
@@ -2154,14 +2190,25 @@ async function autoLoadFromSheets() {
   const status = document.getElementById('auto-load-status');
   try {
     status.textContent = 'Conectando ao Google Sheets...';
-    // Carrega dados e Snapshot em paralelo
-    const [resp, snapTime] = await Promise.all([fetch(SHEETS_URL), fetchSnapTime()]);
+    // Carrega Base, Controle (timestamp) e Historico (snapshot anterior) em paralelo
+    const [resp, snapTime, histQtd] = await Promise.all([
+      fetch(SHEETS_URL),
+      fetchSnapTime(),
+      fetchHistoricoQtd()
+    ]);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const csv = await resp.text();
     const wb  = XLSX.read(csv, {type:'string'});
     const ws  = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {defval:''});
     if (!data.length) throw new Error('Vazio');
+
+    // Se o Historico trouxe dados, usa como referência de comparação universal
+    // (sobrescreve o mapa in-memory que só existia na sessão atual do navegador)
+    if (Object.keys(histQtd).length > 0) {
+      previousAgentQtd = histQtd;
+    }
+
     loadData(data, null, snapTime);
   } catch(e) {
     status.textContent = '⚠️ Erro ao conectar. Importe o arquivo manualmente.';
