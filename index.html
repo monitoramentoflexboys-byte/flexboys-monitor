@@ -1173,6 +1173,11 @@ td.r span { display: inline-block; min-width: 24px; }
         </select>
         <button class="btn-ghost" onclick="clearCepFilters()">Limpar</button>
       </div>
+      <div style="margin-bottom:12px">
+        <input type="text" id="c-busca-cep" placeholder="Buscar por prefixo de CEP (ex: 09210)…"
+          oninput="renderCep()"
+          style="width:100%;background:var(--night3);border:1px solid var(--line2);border-radius:8px;padding:9px 14px;color:var(--ink);font-family:var(--font-data);font-size:13px;letter-spacing:1px;outline:none">
+      </div>
       <div id="cep-list"></div>
     </div>
 
@@ -1446,7 +1451,7 @@ function clearTempoFilters() {
 }
 
 function clearCepFilters() {
-  ['c-gerente','c-servico','c-status'].forEach(id => {
+  ['c-gerente','c-servico','c-status','c-busca-cep'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1696,8 +1701,12 @@ function renderTempo() {
   }
 
   // Salva snapshot atual para comparar na próxima atualização
+  // Usa código numérico puro (sem AGENT_OVERRIDE) para bater com o Historico
   const newAgentQtd = {};
-  agents.forEach(a => { newAgentQtd[agentCode(a.ag)] = a.qtd; });
+  agents.forEach(a => {
+    const cn = ((a.ag||'').match(/^(\d+)/)||[])[1] || agentCode(a.ag);
+    newAgentQtd[cn] = a.qtd;
+  });
 
   // Badge de delta por agente — ciclo de 15 min
   function agentDelta(cod, qtdAtual) {
@@ -1744,7 +1753,8 @@ function renderTempo() {
   }
 
   container.innerHTML = `<div class="tempo-card">${agents.map((a, i) => {
-    const cod  = agentCode(a.ag);
+    const cod     = agentCode(a.ag);               // pode ser 'RODRIGO' pelo override
+    const codNum  = ((a.ag||'').match(/^(\d+)/)||[])[1] || cod; // numérico puro para delta
     const nome = a.ag.replace(/^\d+\s*[-–]\s*/, '') || a.ag;
     const col  = tempoColor(a.horas);
     const bg   = tempoBg(a.horas);
@@ -1756,7 +1766,7 @@ function renderTempo() {
     return `<div class="tempo-agent-row" style="${bg}" onclick="abrirDetalhesTempo('${a.ag.replace(/'/g,"\\'")}')">
       <div class="t-rank" style="color:${col}">${i+1}</div>
       <div class="t-info">
-        <div class="t-name">${icon}<span style="font-family:var(--font-data);color:${col};font-size:12px;font-weight:700;margin-right:6px">${cod}</span><span style="color:${col};font-weight:${a.horas >= 3.5 ? '700' : '500'}">${nome}</span> ${svTags}${agentDelta(cod, a.qtd)}</div>
+        <div class="t-name">${icon}<span style="font-family:var(--font-data);color:${col};font-size:12px;font-weight:700;margin-right:6px">${cod}</span><span style="color:${col};font-weight:${a.horas >= 3.5 ? '700' : '500'}">${nome}</span> ${svTags}${agentDelta(codNum, a.qtd)}</div>
         <div class="t-meta">
           <span>Ger: ${a.gerente||'—'}</span>
           <span>${a.qtd} pedido${a.qtd!==1?'s':''}</span>
@@ -1897,10 +1907,11 @@ function buscarAgente() {
 
 /* ── RENDER CEP DESTINO ── */
 function renderCep() {
-  const gerFil  = (document.getElementById('c-gerente')?.value  || '').trim();
-  const servFil = (document.getElementById('c-servico')?.value  || '').trim();
-  const stFil   = (document.getElementById('c-status')?.value   || '').trim();
-  const sortBy  = document.getElementById('c-sort')?.value || 'total';
+  const gerFil   = (document.getElementById('c-gerente')?.value   || '').trim();
+  const servFil  = (document.getElementById('c-servico')?.value   || '').trim();
+  const stFil    = (document.getElementById('c-status')?.value    || '').trim();
+  const sortBy   = document.getElementById('c-sort')?.value || 'total';
+  const buscaCep = (document.getElementById('c-busca-cep')?.value || '').replace(/\D/g,'').trim();
 
   let base = rawData.filter(r => {
     if (gerFil  && getGerente(r)       !== gerFil)  return false;
@@ -1923,6 +1934,11 @@ function renderCep() {
     else if (st === 'AUSENTE')  groups[prefix].ausente++;
     else groups[prefix].outros[st] = (groups[prefix].outros[st] || 0) + 1;
   });
+
+  // Filtra por prefixo digitado
+  if (buscaCep) {
+    Object.keys(groups).forEach(p => { if (!p.startsWith(buscaCep)) delete groups[p]; });
+  }
 
   let rows = Object.entries(groups).map(([prefix, d]) => {
     const outrosTotal = Object.values(d.outros).reduce((a,b) => a+b, 0);
@@ -2135,21 +2151,26 @@ async function fetchHistoricoQtd() {
     const wb   = XLSX.read(csv, {type:'string'});
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-    if (!rows.length) return {};
+    console.log('[Historico] linhas lidas:', rows.length, rows.slice(0,2));
+    if (!rows.length) { console.warn('[Historico] aba vazia — delta desativado'); return {}; }
 
-    // Agrupa por agente — mesmo critério do renderTempo()
+    // Agrupa por agente — mesmo critério do renderTempo() (EM ROTA + AUSENTE)
+    // Usa o código numérico puro (antes do AGENT_OVERRIDE) para garantir
+    // que bate com a chave usada em agentDelta()
     const mapa = {};
     rows.forEach(r => {
       const st = normalizeStatus(r);
-      if (st !== 'EM ROTA' && st !== 'AUSENTE') return; // só pedidos ativos
+      if (st !== 'EM ROTA' && st !== 'AUSENTE') return;
       const ag  = r['Agente'] || r['AGENTE'] || '';
-      const cod = agentCode(ag);
+      const m   = (ag || '').match(/^(\d+)/);
+      const cod = m ? m[1] : '';
       if (!cod) return;
-      const realCod = AGENT_OVERRIDE[cod] ? cod : cod; // mantém código original
       mapa[cod] = (mapa[cod] || 0) + 1;
     });
+    console.log('[Historico] mapa agentes:', Object.keys(mapa).length, 'agentes', mapa);
     return mapa;
   } catch(e) {
+    console.error('[Historico] erro ao buscar:', e);
     return {};
   }
 }
