@@ -1218,6 +1218,7 @@ const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq
 
 let rawData = [];
 let previousAgentQtd = {}; // mapa cod→qtd do carregamento anterior
+let snapText = '';         // horário do último snapshot (global p/ usar no render)
 let collapsedRegions = new Set();
 let activeTab = 'operacional';
 let previousTab = null;
@@ -2106,7 +2107,7 @@ function loadData(data, label, snapTime) {
 
   rawData = data;
   // Mostra horário do Snapshot da aba Controle se disponível, senão usa hora atual
-  let snapText;
+  // (snapText é global — declarado no topo para que render() possa acessá-la)
   if (snapTime) {
     snapText = snapTime;
   } else {
