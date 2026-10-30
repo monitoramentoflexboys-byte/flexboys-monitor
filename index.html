@@ -1237,45 +1237,72 @@ function getGerente(row) {
 }
 
 function normalizeServico(row) {
+  // Coluna F (Historico Ecommerce) é a fonte verdadeira do marketplace
+  const ecom = (row['Historico Ecommerce'] || row['Histórico Ecommerce'] || '').trim().toUpperCase();
+  const ecomFirst = ecom.split('<QL>')[0].trim();
+  if (ecomFirst.includes('MERCADO LIVRE')) return 'ML';
+  if (ecomFirst.startsWith('EM ROTA DE ENTREGA') || ecomFirst.startsWith('A CAMINHO') && !ecomFirst.includes('MERCADO LIVRE')) {
+    // Shopee usa "EM ROTA DE ENTREGA: ..." no marketplace
+    // fallback: verifica coluna Serviço
+  }
   const s = (row['Servico'] || row['Serviço'] || '').trim().toUpperCase();
   if (s.includes('SHOPEE')) return 'SHOPEE';
   if (s.includes('MERCADO') || s.includes('FLEX')) return 'ML';
+  // Se ecom tem "EM ROTA DE ENTREGA" sem ML → Shopee
+  if (ecomFirst.startsWith('EM ROTA DE ENTREGA')) return 'SHOPEE';
   return 'OUTROS';
 }
 
+// Verifica se o agente deu baixa SOMENTE no Tracken, mas pedido ainda em aberto no marketplace
+// Retorna string com o status indevido, ou '' se está tudo ok
+function detectBurla(row) {
+  const hist = (row['Historico'] || row['Histórico'] || '').trim().toUpperCase();
+  const ecom = (row['Historico Ecommerce'] || row['Histórico Ecommerce'] || '').trim().toUpperCase();
+  const ecomFirst = ecom.split('<QL>')[0].trim();
+  const serv = normalizeServico(row);
+
+  // Status que indicam baixa no Tracken
+  const statusBaixa = ['ENTREGUE','AUSENTE','RECUSADO','CANCELADO','DEVOLVIDO','CEP ERRADO','LOCAL FECHADO'];
+
+  if (statusBaixa.some(st => hist === st)) {
+    // Se marketplace ainda mostra em rota → agente burlou o sistema
+    if (serv === 'ML' && (ecomFirst.startsWith('A CAMINHO') || ecomFirst.startsWith('EM ROTA'))) {
+      return hist; // retorna o status indevido dado no Tracken
+    }
+    if (serv === 'SHOPEE' && ecomFirst.startsWith('EM ROTA DE ENTREGA')) {
+      return hist;
+    }
+  }
+  return '';
+}
+
 function normalizeStatus(row) {
+  // TODOS os pedidos neste relatório estão EM ABERTO (filtro do Python garante isso)
+  // O que conta é o status no MARKETPLACE (col F), não no Tracken (col D)
   const serv = normalizeServico(row);
   const hist = (row['Historico'] || row['Histórico'] || '').trim().toUpperCase();
   const ecom = (row['Historico Ecommerce'] || row['Histórico Ecommerce'] || '').trim().toUpperCase();
   const ecomFirst = ecom.split('<QL>')[0].trim();
 
   if (serv === 'ML') {
+    // Col F define o status real do marketplace
     if (ecomFirst.startsWith('A CAMINHO')) return 'EM ROTA';
-    if (hist === 'ENTREGUE') return 'ENTREGUE';
-    if (hist === 'AUSENTE') return 'AUSENTE';
-    if (hist === 'RECUSADO') return 'RECUSADO';
-    if (hist === 'CANCELADO') return 'CANCELADO';
+    if (ecomFirst.startsWith('EM ROTA')) return 'EM ROTA';
+    // Se col F vazia, col D é fallback
     if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
-    if (hist === 'DEVOLVIDO') return 'DEVOLVIDO';
-    if (hist === 'CEP ERRADO') return 'CEP ERRADO';
-    if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
-    return hist || 'OUTROS';
+    return 'EM ROTA'; // todos em aberto = em rota por definição
   }
   if (serv === 'SHOPEE') {
+    // Col F define status real
+    if (ecomFirst.startsWith('EM ROTA DE ENTREGA')) return 'EM ROTA';
+    if (ecomFirst.startsWith('A CAMINHO')) return 'EM ROTA';
+    // Fallback col D
     if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
-    if (hist === 'ENTREGUE') return 'ENTREGUE';
-    if (hist === 'AUSENTE') return 'AUSENTE';
-    if (hist === 'RECUSADO') return 'RECUSADO';
-    if (hist === 'CANCELADO') return 'CANCELADO';
-    if (hist === 'DEVOLVIDO') return 'DEVOLVIDO';
-    if (hist === 'CEP ERRADO') return 'CEP ERRADO';
-    if (hist === 'LOCAL FECHADO') return 'LOCAL FECHADO';
-    return hist || 'OUTROS';
+    return 'EM ROTA'; // todos em aberto
   }
+  // Outros serviços: col D é referência
   if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
-  if (hist === 'ENTREGUE') return 'ENTREGUE';
-  if (hist === 'AUSENTE') return 'AUSENTE';
-  return hist || 'OUTROS';
+  return 'EM ROTA'; // todos em aberto por definição
 }
 
 function rawHistorico(row) {
@@ -1727,19 +1754,18 @@ function renderTempo() {
 
     const diff   = qtdAtual - prev;   // negativo = baixou pedidos (progresso)
     const baixou = -diff;             // positivo = quantidade baixada
-    const minimo = prev >= 20 ? 3 : 1; // mínimo esperado num ciclo de 15min
 
-    if (baixou >= minimo) {
-      // Progresso normal — baixou o suficiente
-      return `<span style="font-size:10px;color:var(--ok);margin-left:6px;font-weight:600" title="Baixou ${baixou} pedido(s) desde o ciclo anterior">↓ ${baixou}</span>`;
+    if (baixou >= 4) {
+      // 4+ baixas — bom ritmo (verde)
+      return `<span style="font-size:10px;color:var(--ok);margin-left:6px;font-weight:600" title="Baixou ${baixou} pedido(s) no último ciclo">↓ ${baixou}</span>`;
     }
-    if (baixou > 0) {
-      // Baixou pouco — ritmo lento
-      return `<span style="font-size:10px;font-weight:600;color:var(--warn);margin-left:8px;background:rgba(245,166,35,0.15);padding:2px 6px;border-radius:4px" title="Baixou apenas ${baixou} pedido(s) — ritmo abaixo do esperado">⚠️ ↓${baixou}</span>`;
+    if (baixou >= 1) {
+      // 1–3 baixas — ritmo lento (âmbar)
+      return `<span style="font-size:10px;font-weight:600;color:var(--warn);margin-left:8px;background:rgba(245,166,35,0.15);padding:2px 6px;border-radius:4px" title="Baixou apenas ${baixou} pedido(s) — ritmo lento">⚠️ ${baixou}</span>`;
     }
-    if (diff === 0 && prev >= 10) {
-      // Sem alteração — agente com volume alto e sem progresso
-      return `<span style="font-size:10px;font-weight:700;color:#FF4444;margin-left:8px;background:rgba(255,68,68,0.15);padding:2px 6px;border-radius:4px" title="Nenhuma baixa desde o ciclo anterior (${prev} pedidos)">🛑 parado</span>`;
+    if (diff === 0) {
+      // 0 baixas — parado (qualquer volume)
+      return `<span style="font-size:10px;font-weight:700;color:#FF4444;margin-left:8px;background:rgba(255,68,68,0.15);padding:2px 6px;border-radius:4px" title="Nenhuma baixa no último ciclo de 15min (tinha ${prev} pedidos)">🛑 parado</span>`;
     }
     if (diff > 0) {
       // Recebeu mais pedidos que o ciclo anterior
@@ -1837,30 +1863,29 @@ function buscarAgente() {
   const gerente = getGerente(rows[0]);
   const svs     = [...new Set(rows.map(r => normalizeServico(r)))];
 
-  let rota=0, entregue=0, ausente=0, outros=0;
-  rows.forEach(r => {
-    const st = normalizeStatus(r);
-    if (st==='EM ROTA')       rota++;
-    else if (st==='ENTREGUE') entregue++;
-    else if (st==='AUSENTE')  ausente++;
-    else                       outros++;
-  });
+  // Todos os pedidos são em aberto — col F define status real no marketplace
+  let totalAberto = rows.length;
+  let burlaCount  = 0;
+  rows.forEach(r => { if (detectBurla(r)) burlaCount++; });
 
-  const totalAberto = rota + ausente;
   const svTagsHtml  = svs.map(sv =>
     sv==='ML'    ? '<span class="tag tag-ml">Mercado Livre</span>' :
     sv==='SHOPEE'? '<span class="tag tag-shopee">Shopee</span>' : '').join(' ');
 
   const pedidosHtml = rows.map(r => {
-    const st  = normalizeStatus(r);
-    const num = (r['Remessa'] || r['Nº Pedido'] || r['N° Pedido'] ||
+    const st    = normalizeStatus(r);
+    const burla = detectBurla(r);  // status indevido dado no Tracken
+    const num   = (r['Remessa'] || r['Nº Pedido'] || r['N° Pedido'] ||
       Object.entries(r).find(([k]) => k.toLowerCase().includes('pedido'))?.[1] || '—');
-    const data = r['Data Historico'] || r['Data Histórico'] || '';
-    const col  = STATUS_COLORS[st] || 'var(--ghost)';
-    const bg   = STATUS_BG[st]     || 'var(--ghost-d)';
+    const data  = r['Data Historico'] || r['Data Histórico'] || '';
+    const col   = STATUS_COLORS[st] || 'var(--ghost)';
+    const bg    = STATUS_BG[st]     || 'var(--ghost-d)';
+    const burlaTag = burla
+      ? `<span style="font-size:9px;font-weight:700;color:#FF4444;background:rgba(255,68,68,0.15);padding:1px 5px;border-radius:4px;margin-left:4px" title="Baixa dada apenas no Tracken — pedido ainda aberto no marketplace">⚠️ ${burla}</span>`
+      : '';
     return `<div class="pedido-row">
       <div class="pedido-num">${num}</div>
-      <div class="pedido-status" style="background:${bg};color:${col}">${st}</div>
+      <div class="pedido-status" style="background:${bg};color:${col}">${st}${burlaTag}</div>
       <div class="pedido-data">${data ? data.slice(0,16) : ''}</div>
     </div>`;
   }).join('');
@@ -1870,12 +1895,8 @@ function buscarAgente() {
     ? `<span>⏱ ${tempoLabel(horasEmRota)} em rota ${tempoAlert(horasEmRota)}</span>`
     : '';
 
-  const finalizadoBanner = totalAberto === 0 ? `
-    <div class="finalizado-banner">
-      <div class="icon">✅</div>
-      <h3>Agente Finalizado</h3>
-      <p>Todos os ${rows.length} pedidos foram baixados. Nenhum em rota.</p>
-    </div>` : '';
+  // Todos os pedidos neste relatório estão em aberto por definição
+  // (Python filtra apenas pedidos abertos no Tracken)
 
   result.innerHTML = `
     <div class="agent-result-card">
@@ -1890,28 +1911,19 @@ function buscarAgente() {
       </div>
       <div class="agent-status-grid">
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--rota)">${rota}</div>
-          <div class="status-tile-label">Em Rota</div>
+          <div class="status-tile-val" style="color:var(--rota)">${totalAberto}</div>
+          <div class="status-tile-label">Em Aberto</div>
         </div>
         <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--ok)">${entregue}</div>
-          <div class="status-tile-label">Entregue</div>
-        </div>
-        <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--warn)">${ausente}</div>
-          <div class="status-tile-label">Ausente</div>
-        </div>
-        <div class="status-tile">
-          <div class="status-tile-val" style="color:var(--ghost)">${outros}</div>
-          <div class="status-tile-label">Outros</div>
+          <div class="status-tile-val" style="color:#FF4444">${burlaCount}</div>
+          <div class="status-tile-label">Burla Tracken</div>
         </div>
       </div>
-      ${finalizadoBanner}
       <div class="card-head">
-        <span class="section-title">${rows.length} Pedidos</span>
-        ${totalAberto > 0
-          ? `<span class="count-pill">${totalAberto} em aberto</span>`
-          : '<span style="color:var(--ok);font-size:11px;font-weight:700;font-family:var(--font-data)">✓ TUDO BAIXADO</span>'}
+        <span class="section-title">${rows.length} Pedidos em Aberto</span>
+        ${burlaCount > 0
+          ? `<span style="font-size:11px;font-weight:700;color:#FF4444;background:rgba(255,68,68,0.15);padding:3px 8px;border-radius:6px">⚠️ ${burlaCount} baixa${burlaCount>1?'s':''} só no Tracken</span>`
+          : ''}
       </div>
       <div class="pedidos-list">${pedidosHtml}</div>
     </div>`;
