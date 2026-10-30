@@ -1407,6 +1407,17 @@ function populateFilters() {
   tgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
   gerentes.forEach(g => tgSel.innerHTML += `<option>${g}</option>`);
 
+  // Popula serviço da aba Tempo em Rota
+  const tsvSel = document.getElementById('t-servico');
+  if (tsvSel) {
+    const tServicos = [...new Set(rawData.map(r => normalizeServico(r)).filter(s => s && s !== 'OUTROS'))].sort();
+    tsvSel.innerHTML = '<option value="">ML + Shopee</option>';
+    tServicos.forEach(s => {
+      const label = s === 'ML' ? 'Mercado Livre' : s === 'SHOPEE' ? 'Shopee' : s;
+      tsvSel.innerHTML += `<option value="${s}">${label}</option>`;
+    });
+  }
+
   const cgSel = document.getElementById('c-gerente');
   if (cgSel) {
     cgSel.innerHTML = '<option value="">Todos os Gerentes</option>';
