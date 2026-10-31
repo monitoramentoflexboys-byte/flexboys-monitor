@@ -1218,7 +1218,8 @@ const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq
 
 let rawData = [];
 let previousAgentQtd = {}; // mapa cod→qtd do carregamento anterior
-let snapText = '';         // horário do último snapshot (global p/ usar no render)
+let snapText = '';         // horário do snapshot ATUAL (exibido no topo)
+let previousSnapText = ''; // horário do snapshot ANTERIOR (exibido no "ant:")
 let collapsedRegions = new Set();
 let activeTab = 'operacional';
 let previousTab = null;
@@ -1814,7 +1815,7 @@ function renderTempo() {
         <div class="t-name">${icon}<span style="font-family:var(--font-data);color:${col};font-size:12px;font-weight:700;margin-right:6px">${cod}</span><span style="color:${col};font-weight:${a.horas >= 3.5 ? '700' : '500'}">${nome}</span> ${svTags}${agentDelta(codNum, a.qtd)}</div>
         <div class="t-meta">
           <span>Ger: ${a.gerente||'—'}</span>
-          <span>${a.qtd} pedido${a.qtd!==1?'s':''}${(()=>{const prev=previousAgentQtd[codNum];if(prev===undefined)return '';const snapHora=snapText?(' · '+snapText.slice(-5)):'';return ` <span style="color:var(--ink);opacity:0.85;font-size:10px">| ant: ${prev}${snapHora}</span>`;})()}</span>
+          <span>${a.qtd} pedido${a.qtd!==1?'s':''}${(()=>{const prev=previousAgentQtd[codNum];if(prev===undefined)return '';const snapHora=previousSnapText?(' · '+previousSnapText.slice(-5)):'';return ` <span style="color:var(--ink);opacity:0.85;font-size:10px">| ant: ${prev}${snapHora}</span>`;})()}</span>
         </div>
       </div>
       <div class="t-time-bar-wrap">
@@ -2136,6 +2137,10 @@ function loadData(data, label, snapTime) {
   }
 
   rawData = data;
+  // Guarda o snapText ANTERIOR antes de sobrescrever — usado no "ant: X · HH:MM"
+  // Na primeira carga previousSnapText fica vazio (sem referência ainda)
+  previousSnapText = snapText;
+
   // Mostra horário do Snapshot da aba Controle se disponível, senão usa hora atual
   // (snapText é global — declarado no topo para que render() possa acessá-la)
   if (snapTime) {
@@ -2259,6 +2264,17 @@ async function autoLoadFromSheets() {
     // (sobrescreve o mapa in-memory que só existia na sessão atual do navegador)
     if (Object.keys(histQtd).length > 0) {
       previousAgentQtd = histQtd;
+      // Define hora do snapshot anterior = snapTime atual − 15 min
+      // (o Python salva o Historico no ciclo imediatamente anterior)
+      if (snapTime) {
+        // Tenta interpretar o snapTime para subtrair 15 min
+        const m = snapTime.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+        if (m) {
+          const d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
+          d.setMinutes(d.getMinutes() - 15);
+          previousSnapText = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        }
+      }
     }
 
     loadData(data, null, snapTime);
