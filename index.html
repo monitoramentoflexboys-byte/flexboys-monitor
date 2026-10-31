@@ -1509,19 +1509,26 @@ function render() {
   const shopCount = {rota:0, entregue:0, ausente:0, outros:0};
 
   data.forEach(row => {
-    const st = normalizeStatus(row);
     const sv = normalizeServico(row);
-    statusCount[st] = (statusCount[st] || 0) + 1;
-    if (st === 'EM ROTA')       rota++;
-    else if (st === 'ENTREGUE') entregue++;
-    else if (st === 'AUSENTE')  ausente++;
-    else                        outros++;
+    // KPIs usam col D (Historico) — status registrado no Tracken pelo agente
+    const histD = (row['Historico'] || row['Histórico'] || '').trim().toUpperCase();
+    let stKpi;
+    if (histD === 'EM ROTA DE ENTREGA') stKpi = 'EM ROTA';
+    else if (histD === 'ENTREGUE')      stKpi = 'ENTREGUE';
+    else if (histD === 'AUSENTE')       stKpi = 'AUSENTE';
+    else if (histD)                     stKpi = histD;
+    else                                stKpi = 'EM ROTA';
+    statusCount[stKpi] = (statusCount[stKpi] || 0) + 1;
+    if (stKpi === 'EM ROTA')       rota++;
+    else if (stKpi === 'ENTREGUE') entregue++;
+    else if (stKpi === 'AUSENTE')  ausente++;
+    else                           outros++;
     const bucket = sv === 'ML' ? mlCount : sv === 'SHOPEE' ? shopCount : null;
     if (bucket) {
-      if (st === 'EM ROTA')       bucket.rota++;
-      else if (st === 'ENTREGUE') bucket.entregue++;
-      else if (st === 'AUSENTE')  bucket.ausente++;
-      else                        bucket.outros++;
+      if (stKpi === 'EM ROTA')       bucket.rota++;
+      else if (stKpi === 'ENTREGUE') bucket.entregue++;
+      else if (stKpi === 'AUSENTE')  bucket.ausente++;
+      else                           bucket.outros++;
     }
   });
 
@@ -1807,7 +1814,7 @@ function renderTempo() {
         <div class="t-name">${icon}<span style="font-family:var(--font-data);color:${col};font-size:12px;font-weight:700;margin-right:6px">${cod}</span><span style="color:${col};font-weight:${a.horas >= 3.5 ? '700' : '500'}">${nome}</span> ${svTags}${agentDelta(codNum, a.qtd)}</div>
         <div class="t-meta">
           <span>Ger: ${a.gerente||'—'}</span>
-          <span>${a.qtd} pedido${a.qtd!==1?'s':''}${(()=>{const prev=previousAgentQtd[codNum];if(prev===undefined)return '';const snapHora=snapText?(' · '+snapText.slice(-5)):'';return ` <span style="color:var(--ink-dim);opacity:0.75;font-size:10px">| ant: ${prev}${snapHora}</span>`;})()}</span>
+          <span>${a.qtd} pedido${a.qtd!==1?'s':''}${(()=>{const prev=previousAgentQtd[codNum];if(prev===undefined)return '';const snapHora=snapText?(' · '+snapText.slice(-5)):'';return ` <span style="color:var(--ink);opacity:0.85;font-size:10px">| ant: ${prev}${snapHora}</span>`;})()}</span>
         </div>
       </div>
       <div class="t-time-bar-wrap">
