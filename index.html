@@ -2212,14 +2212,14 @@ async function fetchHistoricoQtd() {
 }
 
 async function fetchSnapTime() {
+  // Retorna { atual: "dd/mm/aaaa hh:mm", anterior: "dd/mm/aaaa hh:mm" }
+  // B2 = snapshot atual, B3 = snapshot anterior (gravado pelo Python antes de sobrescrever B2)
   try {
     const resp = await fetch(SHEETS_CONTROLE_URL);
     if (!resp.ok) return null;
     const csv = await resp.text();
-    // Pega a segunda linha, segunda coluna (B2 = valor do Snapshot)
     const linhas = csv.split('\n').map(l => l.trim()).filter(Boolean);
     if (linhas.length < 2) return null;
-    // Parse simples CSV para pegar B2
     function parseCSVLine(line) {
       const cols = [];
       let cur = '', inQ = false;
@@ -2232,12 +2232,16 @@ async function fetchSnapTime() {
       return cols;
     }
     const row2 = parseCSVLine(linhas[1]);
-    const val  = (row2[1] || '').trim(); // coluna B
-    if (!val) return null;
-    // Valida formato esperado: dd/mm/aaaa hh:mm ou dd/mm/aaaa
-    // Se não bater, é HTML de erro do Google Sheets (gid errado)
-    if (!/^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)) return null;
-    return val.slice(0, 16); // "16/10/2026 13:30"
+    const val  = (row2[1] || '').trim(); // B2 = atual
+    if (!val || !/^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)) return null;
+    // B3 = anterior (linha índice 2 no CSV)
+    let anterior = '';
+    if (linhas.length >= 3) {
+      const row3 = parseCSVLine(linhas[2]);
+      const v3   = (row3[1] || '').trim();
+      if (v3 && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(v3)) anterior = v3.slice(0, 16);
+    }
+    return { atual: val.slice(0, 16), anterior };
   } catch(e) {
     return null;
   }
@@ -2248,7 +2252,7 @@ async function autoLoadFromSheets() {
   try {
     status.textContent = 'Conectando ao Google Sheets...';
     // Carrega Base, Controle (timestamp) e Historico (snapshot anterior) em paralelo
-    const [resp, snapTime, histQtd] = await Promise.all([
+    const [resp, snapInfo, histQtd] = await Promise.all([
       fetch(SHEETS_URL),
       fetchSnapTime(),
       fetchHistoricoQtd()
@@ -2260,20 +2264,17 @@ async function autoLoadFromSheets() {
     const data = XLSX.utils.sheet_to_json(ws, {defval:''});
     if (!data.length) throw new Error('Vazio');
 
+    // snapInfo = { atual: "dd/mm/aaaa hh:mm", anterior: "dd/mm/aaaa hh:mm" } ou null
+    const snapTime = snapInfo ? snapInfo.atual : null;
+
     // Se o Historico trouxe dados, usa como referência de comparação universal
-    // (sobrescreve o mapa in-memory que só existia na sessão atual do navegador)
     if (Object.keys(histQtd).length > 0) {
       previousAgentQtd = histQtd;
-      // Define hora do snapshot anterior = snapTime atual − 15 min
-      // (o Python salva o Historico no ciclo imediatamente anterior)
-      if (snapTime) {
-        // Tenta interpretar o snapTime para subtrair 15 min
-        const m = snapTime.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-        if (m) {
-          const d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
-          d.setMinutes(d.getMinutes() - 15);
-          previousSnapText = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        }
+      // Usa B3 do Controle (snapshot anterior real gravado pelo Python)
+      if (snapInfo && snapInfo.anterior) {
+        // Extrai só HH:MM do timestamp anterior
+        const m = snapInfo.anterior.match(/(\d{2}:\d{2})$/);
+        previousSnapText = m ? m[1] : snapInfo.anterior;
       }
     }
 
