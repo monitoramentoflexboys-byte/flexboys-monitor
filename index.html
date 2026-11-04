@@ -974,6 +974,9 @@ td.r span { display: inline-block; min-width: 24px; }
     <button class="tab-btn" onclick="switchTab('cep')">
       <span class="tb-icon">◉</span> CEP Destino
     </button>
+    <button class="tab-btn" onclick="switchTab('manha')">
+      <span class="tb-icon">🌅</span> Manhã nas Ruas
+    </button>
     <button class="tab-btn" onclick="switchTab('nova')">
       <span class="tb-icon">↑</span> Atualizar
     </button>
@@ -1181,6 +1184,33 @@ td.r span { display: inline-block; min-width: 24px; }
       <div id="cep-list"></div>
     </div>
 
+    <!-- ══ ABA MANHÃ NAS RUAS ══ -->
+    <div class="tab-pane" id="pane-manha">
+      <div style="padding:12px max(16px, env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-family:var(--font-data);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--warn);text-transform:uppercase">🌅 Saíram de Manhã — ainda nas ruas</div>
+            <div style="font-size:11px;color:var(--ink-dim);margin-top:2px">Agentes com saída antes das 12h e pedidos em aberto agora</div>
+          </div>
+          <div id="manha-stats" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+          <select class="filter-select" id="manha-faixa" onchange="renderManha()">
+            <option value="">Todas as faixas</option>
+            <option value="07">Antes das 08h 🚨</option>
+            <option value="08">08h – 10h</option>
+            <option value="10">10h – 12h</option>
+          </select>
+          <select class="filter-select" id="manha-sort" onchange="renderManha()">
+            <option value="hora">Ordenar: hora de saída</option>
+            <option value="qtd">Ordenar: qtd pedidos ↓</option>
+            <option value="nome">Ordenar: nome</option>
+          </select>
+        </div>
+        <div id="manha-list"></div>
+      </div>
+    </div>
+
     <!-- ══ ABA ATUALIZAR ══ -->
     <div class="tab-pane" id="pane-nova">
       <div style="display:flex;align-items:center;justify-content:center;min-height:50vh;padding:24px 0">
@@ -1223,6 +1253,118 @@ let previousSnapText = ''; // horário do snapshot ANTERIOR (exibido no "ant:")
 let collapsedRegions = new Set();
 let activeTab = 'operacional';
 let previousTab = null;
+
+/* ── MANHÃ NAS RUAS ── extrai hora de saída real do Historico Ecommerce */
+function getHoraSaida(row) {
+  const ecom = (row['Historico Ecommerce'] || row['Histórico Ecommerce'] || '').trim();
+  if (!ecom) return null;
+  const partes = ecom.split(/<ql>/i);
+  let menor = null;
+  for (const p of partes) {
+    if (/IMPORTADO/i.test(p)) continue;
+    const m = p.match(/(\d{2}:\d{2}):\d{2}/);
+    if (m) {
+      if (!menor || m[1] < menor) menor = m[1];
+    }
+  }
+  return menor; // "HH:MM" ou null
+}
+
+function buildManhaData() {
+  if (!rawData.length) return [];
+  const agMap = {}; // cod → {nome, hora, qtd, gerente}
+  for (const row of rawData) {
+    const ag = (row['Agente'] || '').trim();
+    if (!ag || ag === 'AGENTE PADRAO' || ag === '00 - AGENTE FLEXBOYS') continue;
+    const cod = agentCode(ag);
+    const h = getHoraSaida(row);
+    if (!h) continue;
+    if (!agMap[cod]) {
+      agMap[cod] = { nome: ag, hora: h, qtd: 0, gerente: getGerente(row) };
+    } else {
+      if (h < agMap[cod].hora) agMap[cod].hora = h;
+    }
+    agMap[cod].qtd++;
+  }
+  return Object.values(agMap).filter(a => a.hora < '12:00');
+}
+
+function renderManha() {
+  const list = document.getElementById('manha-list');
+  const stats = document.getElementById('manha-stats');
+  if (!list) return;
+
+  const faixa = (document.getElementById('manha-faixa')||{}).value || '';
+  const sort  = (document.getElementById('manha-sort')||{}).value  || 'hora';
+
+  let data = buildManhaData();
+
+  // Filtro faixa
+  if (faixa === '07') data = data.filter(a => a.hora < '08:00');
+  else if (faixa === '08') data = data.filter(a => a.hora >= '08:00' && a.hora < '10:00');
+  else if (faixa === '10') data = data.filter(a => a.hora >= '10:00' && a.hora < '12:00');
+
+  // Ordenação
+  if (sort === 'qtd') data.sort((a,b) => b.qtd - a.qtd);
+  else if (sort === 'nome') data.sort((a,b) => a.nome.localeCompare(b.nome));
+  else data.sort((a,b) => a.hora.localeCompare(b.hora));
+
+  // Stats
+  const total = buildManhaData();
+  const criticos = total.filter(a => a.hora < '08:00').length;
+  const totalPed  = total.reduce((s,a) => s + a.qtd, 0);
+  stats.innerHTML = `
+    <div style="background:var(--night3);border:1px solid var(--warn-d);border-radius:8px;padding:6px 14px;text-align:center">
+      <div style="font-family:var(--font-data);font-size:20px;font-weight:700;color:var(--warn)">${total.length}</div>
+      <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px">agentes</div>
+    </div>
+    <div style="background:var(--night3);border:1px solid var(--rota-d);border-radius:8px;padding:6px 14px;text-align:center">
+      <div style="font-family:var(--font-data);font-size:20px;font-weight:700;color:var(--rota)">${totalPed}</div>
+      <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px">pedidos</div>
+    </div>
+    ${criticos ? `<div style="background:var(--night3);border:1px solid var(--red-g);border-radius:8px;padding:6px 14px;text-align:center">
+      <div style="font-family:var(--font-data);font-size:20px;font-weight:700;color:var(--red)">${criticos}</div>
+      <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px">antes 08h 🚨</div>
+    </div>` : ''}
+  `;
+
+  if (!data.length) {
+    list.innerHTML = '<div style="color:var(--ink-dim);text-align:center;padding:40px 0;font-size:13px">Nenhum agente encontrado para este filtro.</div>';
+    return;
+  }
+
+  // Cor por faixa
+  function corHora(h) {
+    if (h < '08:00') return 'var(--red)';
+    if (h < '10:00') return 'var(--warn)';
+    return 'var(--ok)';
+  }
+  function bgHora(h) {
+    if (h < '08:00') return 'var(--red-d)';
+    if (h < '10:00') return 'var(--warn-d)';
+    return 'var(--ok-d)';
+  }
+  function label(h) {
+    if (h < '08:00') return '🚨 crítico';
+    if (h < '10:00') return 'manhã';
+    return 'tarde-cedo';
+  }
+
+  const rows = data.map(a => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--night2);border:1px solid var(--line);border-radius:8px;margin-bottom:4px">
+      <div style="background:${bgHora(a.hora)};border:1px solid ${corHora(a.hora)};border-radius:6px;padding:3px 8px;min-width:52px;text-align:center;flex-shrink:0">
+        <span style="font-family:var(--font-data);font-size:13px;font-weight:700;color:${corHora(a.hora)}">${a.hora}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nome}</div>
+        <div style="font-size:10px;color:var(--ink-dim)">${a.gerente || '—'} · <span style="color:${corHora(a.hora)};font-size:9px">${label(a.hora)}</span></div>
+      </div>
+      <div style="font-family:var(--font-data);font-size:16px;font-weight:700;color:var(--rota);min-width:30px;text-align:right;flex-shrink:0">${a.qtd}</div>
+    </div>
+  `).join('');
+
+  list.innerHTML = rows;
+}
 
 /* ── HELPERS ── */
 function agentCode(ag) {
@@ -2078,10 +2220,11 @@ function switchTab(id) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   const pane = document.getElementById('pane-' + id);
   if (pane) pane.classList.add('active');
-  const idx = ['operacional','busca','tempo','cep','nova'].indexOf(id);
+  const idx = ['operacional','busca','tempo','cep','manha','nova'].indexOf(id);
   if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  if (id === 'tempo') renderTempo();
-  if (id === 'cep')   renderCep();
+  if (id === 'tempo')  renderTempo();
+  if (id === 'cep')    renderCep();
+  if (id === 'manha')  renderManha();
   // Ao entrar na aba busca, limpa resultado anterior e foca o campo
   if (id === 'busca') {
     const cod = document.getElementById('busca-cod');
@@ -2159,8 +2302,9 @@ function loadData(data, label, snapTime) {
   render();
   document.getElementById('upload-section').style.display = 'none';
   document.getElementById('app').classList.add('visible');
-  if (activeTab === 'tempo') renderTempo();
-  if (activeTab === 'cep')   renderCep();
+  if (activeTab === 'tempo')  renderTempo();
+  if (activeTab === 'cep')    renderCep();
+  if (activeTab === 'manha')  renderManha();
 }
 
 // ══ CONFIGURAÇÃO: GIDs das abas ══
@@ -2213,13 +2357,14 @@ async function fetchHistoricoQtd() {
 
 async function fetchSnapTime() {
   // Retorna { atual: "dd/mm/aaaa hh:mm", anterior: "dd/mm/aaaa hh:mm" }
-  // B2 = snapshot atual, B3 = snapshot anterior (gravado pelo Python antes de sobrescrever B2)
+  // Busca pelo LABEL (coluna A) para não depender de índice de linha:
+  //   "Snapshot"          → B2 (atual)
+  //   "Snapshot Anterior" → B3 (anterior)
   try {
     const resp = await fetch(SHEETS_CONTROLE_URL);
     if (!resp.ok) return null;
     const csv = await resp.text();
     const linhas = csv.split('\n').map(l => l.trim()).filter(Boolean);
-    if (linhas.length < 2) return null;
     function parseCSVLine(line) {
       const cols = [];
       let cur = '', inQ = false;
@@ -2231,17 +2376,20 @@ async function fetchSnapTime() {
       cols.push(cur);
       return cols;
     }
-    const row2 = parseCSVLine(linhas[1]);
-    const val  = (row2[1] || '').trim(); // B2 = atual
-    if (!val || !/^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)) return null;
-    // B3 = anterior (linha índice 2 no CSV)
-    let anterior = '';
-    if (linhas.length >= 3) {
-      const row3 = parseCSVLine(linhas[2]);
-      const v3   = (row3[1] || '').trim();
-      if (v3 && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(v3)) anterior = v3.slice(0, 16);
+    let atual = '', anterior = '';
+    for (const linha of linhas) {
+      const cols = parseCSVLine(linha);
+      const label = (cols[0] || '').trim().toUpperCase();
+      const val   = (cols[1] || '').trim();
+      if (!val || !/^\d{1,2}\/\d{1,2}\/\d{4}/.test(val)) continue;
+      if (label === 'SNAPSHOT ANTERIOR') {
+        anterior = val.slice(0, 16);
+      } else if (label === 'SNAPSHOT') {
+        atual = val.slice(0, 16);
+      }
     }
-    return { atual: val.slice(0, 16), anterior };
+    if (!atual) return null;
+    return { atual, anterior };
   } catch(e) {
     return null;
   }
