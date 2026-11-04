@@ -2280,9 +2280,12 @@ function loadData(data, label, snapTime) {
   }
 
   rawData = data;
-  // Guarda o snapText ANTERIOR antes de sobrescrever — usado no "ant: X · HH:MM"
-  // Na primeira carga previousSnapText fica vazio (sem referência ainda)
-  previousSnapText = snapText;
+  // Guarda previousSnapText APENAS se não foi setado pelo autoLoadFromSheets via B3.
+  // Quando vem do Sheets, previousSnapText já tem o valor correto (B3) — não sobrescreve.
+  // Só usa o snapText atual como fallback quando carrega arquivo local (sem Controle).
+  if (!previousSnapText) {
+    previousSnapText = snapText;
+  }
 
   // Mostra horário do Snapshot da aba Controle se disponível, senão usa hora atual
   // (snapText é global — declarado no topo para que render() possa acessá-la)
@@ -2414,6 +2417,9 @@ async function autoLoadFromSheets() {
 
     // snapInfo = { atual: "dd/mm/aaaa hh:mm", anterior: "dd/mm/aaaa hh:mm" } ou null
     const snapTime = snapInfo ? snapInfo.atual : null;
+
+    // Reseta previousSnapText para que loadData() não use valor de ciclo anterior
+    previousSnapText = '';
 
     // Se o Historico trouxe dados, usa como referência de comparação universal
     if (Object.keys(histQtd).length > 0) {
