@@ -1051,6 +1051,38 @@ td.r span { display: inline-block; min-width: 24px; }
         </div>
       </div>
 
+      <!-- Comparativo Volume Dia vs Hora -->
+      <div id="vol-dia-wrap" style="display:none;margin-bottom:12px;padding:10px 14px;background:var(--night2);border:1px solid var(--line2);border-radius:8px">
+        <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📊 Volume do dia — comparativo</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+          <div style="flex:0 0 auto">
+            <span style="font-size:10px;color:var(--ink-dim)">Total acumulado até agora</span><br>
+            <span id="vol-acumulado" style="font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--ink)">—</span>
+          </div>
+          <div style="font-size:18px;color:var(--ink-dim)">vs</div>
+          <div style="flex:0 0 auto">
+            <span style="font-size:10px;color:var(--ink-dim)">Esperado nessa hora*</span><br>
+            <span id="vol-esperado" style="font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--ink-mid)">—</span>
+          </div>
+          <div id="vol-delta-box" style="flex:0 0 auto;padding:6px 12px;border-radius:8px;background:var(--ok-d)">
+            <span id="vol-delta" style="font-family:var(--font-data);font-size:16px;font-weight:700;color:var(--ok)">—</span>
+            <span id="vol-delta-label" style="font-size:10px;color:var(--ink-dim);display:block;margin-top:2px">do ritmo</span>
+          </div>
+          <div style="flex:1 1 160px;min-width:0">
+            <div style="font-size:9px;color:var(--ink-dim);margin-bottom:4px">Progresso do dia</div>
+            <div style="height:6px;background:var(--night3);border-radius:3px;overflow:hidden">
+              <div id="vol-progress-bar" style="height:100%;background:var(--ok);border-radius:3px;transition:width 0.5s;width:0%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px">
+              <span style="font-size:9px;color:var(--ink-dim)">11h (início)</span>
+              <span style="font-size:9px;color:var(--ink-dim)" id="vol-hora-ref"></span>
+              <span style="font-size:9px;color:var(--ink-dim)">23h45 (fim)</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:var(--ink-dim);margin-top:6px">* Baseado na proporção de tempo decorrido (início 11h, encerramento 23h45). Referência do total filtrado atual.</div>
+      </div>
+
       <div class="split-grid">
         <!-- Tabela -->
         <div>
@@ -1084,7 +1116,7 @@ td.r span { display: inline-block; min-width: 24px; }
             <div class="card-body" id="status-list"></div>
           </div>
           <div class="status-card">
-            <div class="card-head"><span class="section-title">Top Agentes em Aberto</span></div>
+            <div class="card-head"><span class="section-title">Top 30 Agentes em Aberto</span></div>
             <div class="card-body" id="agents-list"></div>
           </div>
         </div>
@@ -1152,6 +1184,9 @@ td.r span { display: inline-block; min-width: 24px; }
         </select>
         <button class="btn-ghost" onclick="clearTempoFilters()">Limpar</button>
       </div>
+
+      <!-- KPIs Tempo em Rota -->
+      <div id="tempo-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px"></div>
 
       <div id="tempo-list"></div>
     </div>
@@ -2067,6 +2102,46 @@ function render() {
 
   document.getElementById('count-rota').textContent = agentesEmRota + ' agentes em rota';
 
+  // ── Comparativo Volume Dia vs Hora ──
+  (function() {
+    const wrap = document.getElementById('vol-dia-wrap');
+    if (!wrap) return;
+    const now     = new Date();
+    const h       = now.getHours() + now.getMinutes()/60;
+    const INICIO  = 11;    // 11h00
+    const FIM     = 23.75; // 23h45
+    const janela  = FIM - INICIO;
+    if (h < INICIO || h > FIM + 0.5) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    const decorrido = Math.min(Math.max(h - INICIO, 0), janela);
+    const pctTempo  = decorrido / janela; // 0..1
+    const acumulado = total; // total filtrado atual (pedidos no relatório)
+    const esperado  = Math.round(acumulado / pctTempo);
+    const delta     = acumulado - Math.round(esperado * pctTempo);
+    // Na verdade: o esperado na hora H = total_projetado * pctTempo
+    // Mas não temos total_projetado — usamos o inverso: acumulado/pctTempo = projeção
+    const projecao  = Math.round(acumulado / pctTempo);
+    const ritmo     = pctTempo > 0 ? Math.round(pctTempo * 100) : 0;
+    const aHead     = acumulado - Math.round(projecao * pctTempo); // sempre 0, lógica ajustada:
+    // Comparamos: pedidos entregues até agora vs expectativa (entregues/total * pctTempo)
+    const taxaAtual = total > 0 ? entregue / total : 0;
+    const esperadoEnt = Math.round(pctTempo * total);
+    const deltaEnt    = entregue - esperadoEnt;
+    const ahead       = deltaEnt >= 0;
+
+    document.getElementById('vol-acumulado').textContent = entregue + ' entregues';
+    document.getElementById('vol-esperado').textContent  = esperadoEnt + ' esperados';
+    const deltaEl = document.getElementById('vol-delta');
+    const deltaBox = document.getElementById('vol-delta-box');
+    const deltaLbl = document.getElementById('vol-delta-label');
+    deltaEl.textContent = (ahead ? '+' : '') + deltaEnt;
+    deltaEl.style.color = ahead ? 'var(--ok)' : deltaEnt < -10 ? '#FF4444' : 'var(--warn)';
+    deltaBox.style.background = ahead ? 'var(--ok-d)' : deltaEnt < -10 ? 'var(--red-d)' : 'var(--warn-d)';
+    deltaLbl.textContent = ahead ? 'acima do ritmo' : Math.abs(deltaEnt) <= 10 ? 'no ritmo' : 'abaixo do ritmo';
+    document.getElementById('vol-progress-bar').style.width = Math.round(pctTempo*100) + '%';
+    document.getElementById('vol-hora-ref').textContent = now.getHours() + 'h' + String(now.getMinutes()).padStart(2,'0') + ' (agora · ' + Math.round(pctTempo*100) + '% do dia)';
+  })();
+
   // Top agents
   const agTotals = {};
   data.forEach(row => {
@@ -2081,15 +2156,17 @@ function render() {
   const topAg  = Object.entries(agTotals)
     .filter(([,v]) => v.open >= 3)
     .sort((a,b) => b[1].open - a[1].open)
-    .slice(0, 12);
+    .slice(0, 30);
   const maxAg = topAg[0]?.[1].open || 1;
   document.getElementById('agents-list').innerHTML = topAg.map(([ag, v], i) => {
     const pct2  = Math.round(v.open / maxAg * 100);
     const cod   = agentCode(ag);
     const nome  = ag.replace(/^\d+\s*[-–]\s*/, '') || ag;
+    const rotaCor = v.rota > 0 ? `<span style="font-size:9px;color:var(--rota)">${v.rota}↗</span>` : '';
+    const ausCor  = v.aus > 0  ? `<span style="font-size:9px;color:var(--warn)">${v.aus}⚠</span>` : '';
     return `<div class="agent-item">
       <div class="a-rank">${i+1}</div>
-      <div class="a-name" title="${ag}"><span class="a-cod">${cod}</span> ${nome}</div>
+      <div class="a-name" title="${ag}"><span class="a-cod">${cod}</span> ${nome} ${rotaCor}${ausCor}</div>
       <div class="a-bar-wrap"><div class="a-bar" style="width:${pct2}%"></div></div>
       <div class="a-count">${v.open}</div>
     </div>`;
@@ -2132,6 +2209,32 @@ function renderTempo() {
 
   const maxH = Math.max(...agents.map(a => a.horas || 0), 1);
   const container = document.getElementById('tempo-list');
+
+  // KPIs da aba Tempo em Rota
+  const kpiEl = document.getElementById('tempo-kpis');
+  if (kpiEl) {
+    const totalAgentes = agents.length;
+    const totalPedsRota = agents.reduce((s,a) => s+a.qtd, 0);
+    const criticos  = agents.filter(a => a.horas !== null && a.horas >= 3.5 && a.horas < 5).length;
+    const maximos   = agents.filter(a => a.horas !== null && a.horas >= 5).length;
+    const parados   = agents.filter(a => {
+      const cod = ((a.ag||'').match(/^(\d+)/)||[])[1] || agentCode(a.ag);
+      const prev = previousAgentQtd[cod];
+      return prev !== undefined && a.qtd >= prev;
+    }).length;
+    const kpis = [
+      { label:'Agentes em Rota', val: totalAgentes, sub: `${totalPedsRota} pedidos`, col:'var(--rota)' },
+      { label:'Em Alerta 🔴 >3h30', val: criticos,  sub:'Acionar agente', col:'#FF4444' },
+      { label:'Crítico 🟣 >5h',    val: maximos,   sub:'Escalar gestão', col:'var(--purple)' },
+      { label:'Sem Baixa',         val: parados,   sub:'No último ciclo', col:'var(--warn)' },
+    ];
+    kpiEl.innerHTML = kpis.map(k => `
+      <div style="background:var(--night2);border:1px solid var(--line2);border-radius:10px;padding:12px 14px">
+        <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${k.label}</div>
+        <div style="font-family:var(--font-data);font-size:26px;font-weight:700;color:${k.col};line-height:1">${k.val}</div>
+        <div style="font-size:10px;color:var(--ink-dim);margin-top:4px">${k.sub}</div>
+      </div>`).join('');
+  }
 
   if (!agents.length) {
     container.innerHTML = '<div class="empty"><h3>Sem dados em rota</h3><p>Carregue uma planilha com pedidos em rota.</p></div>';
@@ -2350,7 +2453,8 @@ function renderCep() {
     const st     = normalizeStatus(r);
     const sv     = normalizeServico(r);
     const pedido = r['Numero Pedido'] || r['Número Pedido'] || r['Pedido'] || r['Remessa'] || r['NF'] || '';
-    groups[prefix].pedidos.push({ st, pedido, hist: rawHistorico(r), serv: sv });
+    const agente = (r['Agente'] || '').trim();
+    groups[prefix].pedidos.push({ st, pedido, hist: rawHistorico(r), serv: sv, agente });
     groups[prefix].svs[sv] = (groups[prefix].svs[sv] || 0) + 1;
     if (st === 'EM ROTA')       groups[prefix].rota++;
     else if (st === 'ENTREGUE') groups[prefix].entregue++;
@@ -2397,69 +2501,81 @@ function renderCep() {
   const maxAusente  = Math.max(...rows.map(r => r.ausente), 1);
   const maxOutros   = Math.max(...rows.map(r => r.outrosTotal), 1);
 
-  function pedidosList(arr, maxShow) {
-    if (!arr.length) return '';
-    const shown = arr.slice(0, maxShow).filter(p => p).join(', ');
-    const extra = arr.length > maxShow ? ` +${arr.length - maxShow}` : '';
-    return shown ? `<div class="cep-pedidos">${shown}${extra}</div>` : '';
-  }
-
   el.innerHTML = `
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--night2);border-radius:8px;border:1px solid var(--line2)">
       <span style="font-size:11px;color:var(--ink-dim)">${rows.length} CEPs · <strong style="color:var(--ink)">${totalPedidos}</strong> pedidos</span>
       <span style="font-size:11px;color:var(--rota)">🔵 <strong>${totalRota}</strong> em rota</span>
       <span style="font-size:11px;color:var(--warn)">⚠️ <strong>${totalAusente}</strong> ausentes</span>
+      <span style="font-size:11px;color:var(--ink-dim);margin-left:auto">▶ clique no CEP para ver agentes e pedidos</span>
     </div>
-    <div class="cep-list-wrap">${rows.map(row => {
+    <div class="cep-list-wrap">${rows.map((row, idx) => {
     const taxaCls   = row.taxa >= 80 ? 'ok' : row.taxa >= 50 ? 'warn' : 'bad';
-    const outrosDetail = Object.entries(row.outros).sort((a,b)=>b[1]-a[1])
-      .map(([k,v]) => `<span style="margin-right:8px;color:var(--ink-dim)">${k}: <strong style="color:var(--ink)">${v}</strong></span>`).join('');
-
-    const rotaPeds   = row.pedidos.filter(p => p.st === 'EM ROTA').map(p => p.pedido);
-    const entPeds    = row.pedidos.filter(p => p.st === 'ENTREGUE').map(p => p.pedido);
-    const ausPeds    = row.pedidos.filter(p => p.st === 'AUSENTE').map(p => p.pedido);
-    const outrosPeds = row.pedidos.filter(p => !['EM ROTA','ENTREGUE','AUSENTE'].includes(p.st)).map(p => p.pedido);
-
     const svChips = Object.entries(row.svs || {}).sort((a,b)=>b[1]-a[1]).map(([sv, cnt]) =>
       sv === 'ML'     ? `<span class="tag tag-ml" style="font-size:9px">ML ${cnt}</span>` :
       sv === 'SHOPEE' ? `<span class="tag tag-shopee" style="font-size:9px">SHP ${cnt}</span>` : '').join(' ');
 
-    return `<div class="cep-row">
-      <div class="cep-prefix">${row.prefix}${svChips ? `<div style="margin-top:4px">${svChips}</div>` : ''}</div>
+    // Tabela expandível: agrupa por agente
+    const byAgente = {};
+    row.pedidos.forEach(p => {
+      const ag = p.agente || 'SEM AGENTE';
+      if (!byAgente[ag]) byAgente[ag] = [];
+      byAgente[ag].push(p);
+    });
+    const tabelaHtml = Object.entries(byAgente).sort((a,b)=>b[1].length-a[1].length).map(([ag, peds]) => {
+      const cod  = ((ag.match(/^(\d+)/)||[])[1] || ag.slice(0,4)).toUpperCase();
+      const nome = ag.replace(/^\d+\s*[-–]\s*/,'') || ag;
+      return peds.map((p,pi) => {
+        const stCol = p.st==='EM ROTA'?'var(--rota)': p.st==='ENTREGUE'?'var(--ok)': p.st==='AUSENTE'?'var(--warn)':'var(--ghost)';
+        const svTag = p.serv==='ML'?'<span class="tag tag-ml" style="font-size:9px">ML</span>': p.serv==='SHOPEE'?'<span class="tag tag-shopee" style="font-size:9px">SHP</span>':'';
+        return `<tr>
+          ${pi===0?`<td rowspan="${peds.length}" style="padding:5px 8px;border-right:1px solid var(--line);vertical-align:top;white-space:nowrap"><span style="font-family:var(--font-data);font-size:11px;font-weight:700;color:var(--rota)">${cod}</span><br><span style="font-size:10px;color:var(--ink-mid)">${nome.slice(0,20)}</span></td>`:''}
+          <td style="padding:4px 8px;font-family:var(--font-data);font-size:11px">${p.pedido||'—'}</td>
+          <td style="padding:4px 8px;font-size:10px;color:${stCol}">${p.st}</td>
+          <td style="padding:4px 8px">${svTag}</td>
+        </tr>`;
+      }).join('');
+    }).join('');
+
+    return `<div class="cep-row" style="cursor:pointer;user-select:none" onclick="toggleCepDetail(${idx})">
+      <div class="cep-prefix">${row.prefix}${svChips ? `<div style="margin-top:4px">${svChips}</div>` : ''}
+        <div style="font-size:9px;color:var(--ink-dim);margin-top:4px">▼ ver agentes</div>
+      </div>
       <div class="cep-bars">
-        ${row.rota > 0 ? `
-        <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--rota)">EM ROTA</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.rota/maxRota*100)}%;background:var(--rota)"></div></div>
-          <span class="cep-bar-val" style="color:var(--rota)">${row.rota}</span>
-        </div>${pedidosList(rotaPeds, 6)}` : ''}
-        ${row.entregue > 0 ? `
-        <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--ok)">ENTREGUE</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.entregue/maxEntregue*100)}%;background:var(--ok)"></div></div>
-          <span class="cep-bar-val" style="color:var(--ok)">${row.entregue}</span>
-        </div>${pedidosList(entPeds, 4)}` : ''}
-        ${row.ausente > 0 ? `
-        <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--warn)">AUSENTE</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.ausente/maxAusente*100)}%;background:var(--warn)"></div></div>
-          <span class="cep-bar-val" style="color:var(--warn)">${row.ausente}</span>
-        </div>${pedidosList(ausPeds, 4)}` : ''}
-        ${row.outrosTotal > 0 ? `
-        <div class="cep-bar-row">
-          <span class="cep-bar-label" style="color:var(--ghost)">OUTROS</span>
-          <div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.outrosTotal/maxOutros*100)}%;background:var(--ghost)"></div></div>
-          <span class="cep-bar-val" style="color:var(--ghost)">${row.outrosTotal}</span>
-        </div>
-        ${outrosDetail ? `<div style="margin-top:3px;font-size:10px">${outrosDetail}</div>` : ''}
-        ${pedidosList(outrosPeds, 4)}` : ''}
+        ${row.rota > 0 ? `<div class="cep-bar-row"><span class="cep-bar-label" style="color:var(--rota)">EM ROTA</span><div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.rota/maxRota*100)}%;background:var(--rota)"></div></div><span class="cep-bar-val" style="color:var(--rota)">${row.rota}</span></div>` : ''}
+        ${row.entregue > 0 ? `<div class="cep-bar-row"><span class="cep-bar-label" style="color:var(--ok)">ENTREGUE</span><div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.entregue/maxEntregue*100)}%;background:var(--ok)"></div></div><span class="cep-bar-val" style="color:var(--ok)">${row.entregue}</span></div>` : ''}
+        ${row.ausente > 0 ? `<div class="cep-bar-row"><span class="cep-bar-label" style="color:var(--warn)">AUSENTE</span><div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.ausente/maxAusente*100)}%;background:var(--warn)"></div></div><span class="cep-bar-val" style="color:var(--warn)">${row.ausente}</span></div>` : ''}
+        ${row.outrosTotal > 0 ? `<div class="cep-bar-row"><span class="cep-bar-label" style="color:var(--ghost)">OUTROS</span><div class="cep-bar-track"><div class="cep-bar-fill" style="width:${Math.round(row.outrosTotal/maxOutros*100)}%;background:var(--ghost)"></div></div><span class="cep-bar-val" style="color:var(--ghost)">${row.outrosTotal}</span></div>` : ''}
       </div>
       <div class="cep-stats">
         <div class="cep-total">${row.total}</div>
         <div class="cep-taxa ${taxaCls}">${row.taxa}% ENT</div>
       </div>
+    </div>
+    <div id="cep-detail-${idx}" hidden style="background:var(--night2);border:1px solid var(--line2);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:4px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--night3)">
+          <th style="padding:6px 8px;text-align:left;color:var(--ink-dim);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Agente</th>
+          <th style="padding:6px 8px;text-align:left;color:var(--ink-dim);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Pedido / Remessa</th>
+          <th style="padding:6px 8px;text-align:left;color:var(--ink-dim);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Status</th>
+          <th style="padding:6px 8px;text-align:left;color:var(--ink-dim);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Serv.</th>
+        </tr></thead>
+        <tbody>${tabelaHtml}</tbody>
+      </table>
     </div>`;
   }).join('')}</div>`;
+}
+
+/* ── CEP DETAIL TOGGLE ── */
+function toggleCepDetail(idx) {
+  const el = document.getElementById('cep-detail-' + idx);
+  if (!el) return;
+  el.hidden = !el.hidden;
+  // Atualiza seta
+  const rows = document.querySelectorAll('.cep-row');
+  if (rows[idx]) {
+    const arrow = rows[idx].querySelector('[style*="ver agentes"]');
+    if (arrow) arrow.textContent = el.hidden ? '▼ ver agentes' : '▲ fechar';
+  }
 }
 
 /* ── SWITCH TAB ── */
