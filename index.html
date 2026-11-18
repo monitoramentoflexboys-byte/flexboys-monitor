@@ -1051,36 +1051,72 @@ td.r span { display: inline-block; min-width: 24px; }
         </div>
       </div>
 
-      <!-- Comparativo Volume Dia vs Hora -->
-      <div id="vol-dia-wrap" style="display:none;margin-bottom:12px;padding:10px 14px;background:var(--night2);border:1px solid var(--line2);border-radius:8px">
-        <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📊 Volume do dia — comparativo</div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-          <div style="flex:0 0 auto">
-            <span style="font-size:10px;color:var(--ink-dim)">Total acumulado até agora</span><br>
-            <span id="vol-acumulado" style="font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--ink)">—</span>
+      <!-- Painel Operacional do Dia -->
+      <div id="vol-dia-wrap" style="margin-bottom:12px;background:var(--night2);border:1px solid var(--line2);border-radius:10px;overflow:hidden">
+        <!-- Cabeçalho -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--night3);border-bottom:1px solid var(--line)">
+          <span style="font-size:10px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px">⏱ Situação Operacional do Dia</span>
+          <span id="vol-hora-ref" style="font-size:10px;color:var(--ink-dim);font-family:var(--font-data)"></span>
+        </div>
+        <!-- KPIs principais — Opção A: só Sheets -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;border-bottom:1px solid var(--line)">
+          <div style="padding:12px 14px;border-right:1px solid var(--line)">
+            <div style="font-size:9px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Em Rota agora</div>
+            <div id="vol-em-rota" style="font-family:var(--font-data);font-size:24px;font-weight:700;color:var(--rota)">—</div>
+            <div id="vol-em-rota-sub" style="font-size:10px;color:var(--ink-dim);margin-top:2px">pedidos · <span id="vol-agentes-rota">—</span> agentes</div>
           </div>
-          <div style="font-size:18px;color:var(--ink-dim)">vs</div>
-          <div style="flex:0 0 auto">
-            <span style="font-size:10px;color:var(--ink-dim)">Esperado nessa hora*</span><br>
-            <span id="vol-esperado" style="font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--ink-mid)">—</span>
+          <div style="padding:12px 14px;border-right:1px solid var(--line)">
+            <div style="font-size:9px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Horas até corte ML</div>
+            <div id="vol-horas-corte" style="font-family:var(--font-data);font-size:24px;font-weight:700;color:var(--warn)">—</div>
+            <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">corte 21h · enc. 23h45</div>
           </div>
-          <div id="vol-delta-box" style="flex:0 0 auto;padding:6px 12px;border-radius:8px;background:var(--ok-d)">
-            <span id="vol-delta" style="font-family:var(--font-data);font-size:16px;font-weight:700;color:var(--ok)">—</span>
-            <span id="vol-delta-label" style="font-size:10px;color:var(--ink-dim);display:block;margin-top:2px">do ritmo</span>
+          <div style="padding:12px 14px;border-right:1px solid var(--line)">
+            <div style="font-size:9px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Ritmo estimado</div>
+            <div id="vol-ritmo" style="font-family:var(--font-data);font-size:24px;font-weight:700;color:var(--ok)">—</div>
+            <div id="vol-ritmo-sub" style="font-size:10px;color:var(--ink-dim);margin-top:2px">pedidos/agente/hora</div>
           </div>
-          <div style="flex:1 1 160px;min-width:0">
-            <div style="font-size:9px;color:var(--ink-dim);margin-bottom:4px">Progresso do dia</div>
-            <div style="height:6px;background:var(--night3);border-radius:3px;overflow:hidden">
-              <div id="vol-progress-bar" style="height:100%;background:var(--ok);border-radius:3px;transition:width 0.5s;width:0%"></div>
+          <div id="vol-risco-box" style="padding:12px 14px">
+            <div style="font-size:9px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Agentes em risco</div>
+            <div id="vol-risco" style="font-family:var(--font-data);font-size:24px;font-weight:700;color:#FF4444">—</div>
+            <div id="vol-risco-sub" style="font-size:10px;color:var(--ink-dim);margin-top:2px">não zeraram antes do corte</div>
+          </div>
+        </div>
+        <!-- Barra de progresso do dia -->
+        <div style="padding:8px 14px 10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:9px;color:var(--ink-dim)">11h (início)</span>
+            <span style="font-size:9px;color:var(--warn)">21h corte ML</span>
+            <span style="font-size:9px;color:var(--ink-dim)">23h45 (fim)</span>
+          </div>
+          <div style="position:relative;height:8px;background:var(--night3);border-radius:4px;overflow:hidden">
+            <!-- Faixa de risco ML (21h–23h45) = ~22% do dia -->
+            <div style="position:absolute;right:0;top:0;height:100%;width:22%;background:rgba(218,36,27,0.15)"></div>
+            <!-- Progresso atual -->
+            <div id="vol-progress-bar" style="position:absolute;left:0;top:0;height:100%;background:var(--rota);border-radius:4px;transition:width 0.5s;width:0%"></div>
+            <!-- Marcador hora atual -->
+            <div id="vol-agora-marker" style="position:absolute;top:-2px;width:2px;height:12px;background:white;border-radius:1px;opacity:0.8"></div>
+          </div>
+          <div style="font-size:9px;color:var(--ink-dim);margin-top:5px" id="vol-projecao-txt"></div>
+        </div>
+        <!-- Opção B: painel de histórico (aparece quando intel JSON disponível) -->
+        <div id="vol-historico-wrap" hidden style="border-top:1px solid var(--line);padding:10px 14px">
+          <div style="font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📈 Comparativo histórico (intel)</div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:9px;color:var(--ink-dim)">Hoje até agora</div>
+              <div id="vol-hist-hoje" style="font-family:var(--font-data);font-size:20px;font-weight:700;color:var(--ink)">—</div>
             </div>
-            <div style="display:flex;justify-content:space-between;margin-top:3px">
-              <span style="font-size:9px;color:var(--ink-dim)">11h (início)</span>
-              <span style="font-size:9px;color:var(--ink-dim)" id="vol-hora-ref"></span>
-              <span style="font-size:9px;color:var(--ink-dim)">23h45 (fim)</span>
+            <div style="font-size:16px;color:var(--ink-dim);align-self:flex-end;padding-bottom:4px">vs</div>
+            <div>
+              <div style="font-size:9px;color:var(--ink-dim)">Mesmo horário ontem</div>
+              <div id="vol-hist-ontem" style="font-family:var(--font-data);font-size:20px;font-weight:700;color:var(--ink-mid)">—</div>
+            </div>
+            <div id="vol-hist-delta-box" style="padding:5px 10px;border-radius:6px;background:var(--night3);align-self:center">
+              <span id="vol-hist-delta" style="font-family:var(--font-data);font-size:14px;font-weight:700">—</span>
+              <span style="font-size:9px;color:var(--ink-dim);display:block">vs ontem</span>
             </div>
           </div>
         </div>
-        <div style="font-size:9px;color:var(--ink-dim);margin-top:6px">* Baseado na proporção de tempo decorrido (início 11h, encerramento 23h45). Referência do total filtrado atual.</div>
       </div>
 
       <div class="split-grid">
@@ -2102,44 +2138,106 @@ function render() {
 
   document.getElementById('count-rota').textContent = agentesEmRota + ' agentes em rota';
 
-  // ── Comparativo Volume Dia vs Hora ──
+  // ── Painel Operacional do Dia — Opção A (Sheets) + Opção B (Intel JSON) ──
   (function() {
-    const wrap = document.getElementById('vol-dia-wrap');
-    if (!wrap) return;
-    const now     = new Date();
-    const h       = now.getHours() + now.getMinutes()/60;
-    const INICIO  = 11;    // 11h00
-    const FIM     = 23.75; // 23h45
-    const janela  = FIM - INICIO;
-    if (h < INICIO || h > FIM + 0.5) { wrap.style.display = 'none'; return; }
-    wrap.style.display = '';
-    const decorrido = Math.min(Math.max(h - INICIO, 0), janela);
-    const pctTempo  = decorrido / janela; // 0..1
-    const acumulado = total; // total filtrado atual (pedidos no relatório)
-    const esperado  = Math.round(acumulado / pctTempo);
-    const delta     = acumulado - Math.round(esperado * pctTempo);
-    // Na verdade: o esperado na hora H = total_projetado * pctTempo
-    // Mas não temos total_projetado — usamos o inverso: acumulado/pctTempo = projeção
-    const projecao  = Math.round(acumulado / pctTempo);
-    const ritmo     = pctTempo > 0 ? Math.round(pctTempo * 100) : 0;
-    const aHead     = acumulado - Math.round(projecao * pctTempo); // sempre 0, lógica ajustada:
-    // Comparamos: pedidos entregues até agora vs expectativa (entregues/total * pctTempo)
-    const taxaAtual = total > 0 ? entregue / total : 0;
-    const esperadoEnt = Math.round(pctTempo * total);
-    const deltaEnt    = entregue - esperadoEnt;
-    const ahead       = deltaEnt >= 0;
+    const now    = new Date();
+    const h      = now.getHours() + now.getMinutes()/60;
+    const INICIO = 11;      // 11h00
+    const CORTE  = 21;      // corte Mercado Livre
+    const FIM    = 23.75;   // 23h45
+    const janela = FIM - INICIO;
+    const horaStr = now.getHours() + 'h' + String(now.getMinutes()).padStart(2,'0');
 
-    document.getElementById('vol-acumulado').textContent = entregue + ' entregues';
-    document.getElementById('vol-esperado').textContent  = esperadoEnt + ' esperados';
-    const deltaEl = document.getElementById('vol-delta');
-    const deltaBox = document.getElementById('vol-delta-box');
-    const deltaLbl = document.getElementById('vol-delta-label');
-    deltaEl.textContent = (ahead ? '+' : '') + deltaEnt;
-    deltaEl.style.color = ahead ? 'var(--ok)' : deltaEnt < -10 ? '#FF4444' : 'var(--warn)';
-    deltaBox.style.background = ahead ? 'var(--ok-d)' : deltaEnt < -10 ? 'var(--red-d)' : 'var(--warn-d)';
-    deltaLbl.textContent = ahead ? 'acima do ritmo' : Math.abs(deltaEnt) <= 10 ? 'no ritmo' : 'abaixo do ritmo';
-    document.getElementById('vol-progress-bar').style.width = Math.round(pctTempo*100) + '%';
-    document.getElementById('vol-hora-ref').textContent = now.getHours() + 'h' + String(now.getMinutes()).padStart(2,'0') + ' (agora · ' + Math.round(pctTempo*100) + '% do dia)';
+    // Hora ref no cabeçalho
+    const horaRef = document.getElementById('vol-hora-ref');
+    if (horaRef) horaRef.textContent = horaStr + ' · ' + Math.round(Math.min(Math.max((h-INICIO)/janela,0),1)*100) + '% do dia';
+
+    // Barra de progresso
+    const pctDia = Math.min(Math.max((h - INICIO) / janela, 0), 1);
+    const bar = document.getElementById('vol-progress-bar');
+    if (bar) bar.style.width = Math.round(pctDia * 100) + '%';
+    const marker = document.getElementById('vol-agora-marker');
+    if (marker) marker.style.left = Math.round(pctDia * 100) + '%';
+
+    // ── OPÇÃO A: análise de risco pelo snapshot atual ──
+    // Pega agentes em rota com seus pedidos
+    const emRotaRows = rawData.filter(r => normalizeStatus(r) === 'EM ROTA');
+    const byAg = {};
+    emRotaRows.forEach(r => {
+      const ag = (r['Agente'] || 'SEM AGENTE').trim();
+      if (!byAg[ag]) byAg[ag] = [];
+      byAg[ag].push(r);
+    });
+    const agentesEmRotaList = Object.entries(byAg).map(([ag, rows]) => ({
+      ag, qtd: rows.length, horas: horasMaisAntiga(rows)
+    }));
+    const totalEmRota  = emRotaRows.length;
+    const nAgentes     = agentesEmRotaList.length;
+
+    // Ritmo estimado: pedidos por agente por hora restante até corte ML
+    const horasAteCorte = Math.max(CORTE - h, 0);
+    const horasAteFim   = Math.max(FIM - h, 0);
+    // Ritmo médio necessário para zerar até o corte ML
+    const ritmoNecessario = horasAteCorte > 0 && nAgentes > 0
+      ? (totalEmRota / nAgentes / horasAteCorte).toFixed(1)
+      : '—';
+
+    // Agentes em risco: têm pedidos e tempo em rota já > horas disponíveis
+    // ou qtd alta para o tempo restante (estimativa: 5 ped/hora/agente ritmo normal)
+    const RITMO_NORMAL = 5; // entregas/hora por agente em condição normal
+    const agentesRisco = agentesEmRotaList.filter(a => {
+      const consegue = horasAteFim * RITMO_NORMAL;
+      return a.qtd > consegue || (a.horas !== null && a.horas >= 5);
+    });
+
+    // Cor do corte
+    const corteColor = horasAteCorte <= 1 ? '#FF4444' : horasAteCorte <= 3 ? 'var(--warn)' : 'var(--ok)';
+
+    const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const setCol = (id, c) => { const el = document.getElementById(id); if (el) el.style.color = c; };
+
+    setTxt('vol-em-rota', totalEmRota);
+    setTxt('vol-agentes-rota', nAgentes + ' agentes');
+    setTxt('vol-horas-corte', horasAteCorte > 0 ? horasAteCorte.toFixed(1) + 'h' : 'PASSOU');
+    setCol('vol-horas-corte', corteColor);
+    setTxt('vol-ritmo', ritmoNecessario);
+    setTxt('vol-ritmo-sub', 'ped/agente/hora pra zerar até 21h');
+    setTxt('vol-risco', agentesRisco.length);
+
+    const projecaoTxt = document.getElementById('vol-projecao-txt');
+    if (projecaoTxt) {
+      if (horasAteCorte <= 0) {
+        projecaoTxt.innerHTML = '<span style="color:#FF4444;font-weight:700">⚠ Corte ML já passou — verificar pedidos restantes com o agente</span>';
+      } else if (agentesRisco.length === 0) {
+        projecaoTxt.innerHTML = `<span style="color:var(--ok)">✅ Ritmo atual permite zerar antes das 21h</span> · ${horasAteCorte.toFixed(1)}h restantes · ${nAgentes} agentes · ${totalEmRota} pedidos`;
+      } else {
+        const nomes = agentesRisco.slice(0,3).map(a => {
+          const cod = ((a.ag||'').match(/^(\d+)/)||[])[1] || a.ag.slice(0,4);
+          return `<span style="color:#FF4444;font-weight:600">${cod}</span> (${a.qtd}p)`;
+        }).join(', ');
+        projecaoTxt.innerHTML = `<span style="color:var(--warn)">⚠ ${agentesRisco.length} agente(s) com risco de não zerar antes das 21h:</span> ${nomes}${agentesRisco.length>3?' …':''}`;
+      }
+    }
+
+    // ── OPÇÃO B: histórico via intel JSON (ativa automaticamente se disponível) ──
+    if (window.intelData && window.intelData.resumo) {
+      const resumo = window.intelData.resumo;
+      const histWrap = document.getElementById('vol-historico-wrap');
+      if (histWrap) histWrap.hidden = false;
+      // resumo.total_pedidos_hoje vs resumo.total_pedidos_ontem (se existirem)
+      const hoje  = resumo.total_pedidos_hoje   || resumo.total || '—';
+      const ontem = resumo.total_pedidos_ontem  || '—';
+      setTxt('vol-hist-hoje',  String(hoje));
+      setTxt('vol-hist-ontem', String(ontem));
+      if (typeof hoje === 'number' && typeof ontem === 'number' && ontem > 0) {
+        const d = hoje - ontem;
+        const ahead = d >= 0;
+        const deltaEl = document.getElementById('vol-hist-delta');
+        const deltaBox = document.getElementById('vol-hist-delta-box');
+        if (deltaEl) { deltaEl.textContent = (ahead?'+':'') + d; deltaEl.style.color = ahead ? 'var(--ok)' : '#FF4444'; }
+        if (deltaBox) deltaBox.style.background = ahead ? 'var(--ok-d)' : 'var(--red-d)';
+      }
+    }
   })();
 
   // Top agents
