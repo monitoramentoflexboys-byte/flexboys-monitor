@@ -917,6 +917,31 @@ td.r span { display: inline-block; min-width: 24px; }
 /* ── REFRESH BTN ── */
 .refresh-row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 12px; }
 
+/* ── COUNTDOWN PILL ── */
+.countdown-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  background: var(--night3);
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.countdown-pill:hover { border-color: var(--red); }
+.countdown-pill.paused { opacity: 0.5; }
+.countdown-icon { font-size: 11px; }
+.countdown-pill span {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
+#refresh-countdown { color: var(--ok); min-width: 32px; display: inline-block; text-align: right; }
+
 /* ── UTILS ── */
 .divider {
   height: 1px;
@@ -937,6 +962,10 @@ td.r span { display: inline-block; min-width: 24px; }
     <span style="color:var(--ink-dim)">registros</span>
     <span id="record-count" style="color:var(--ink);font-weight:700">—</span>
     <span id="record-delta" style="font-size:10px"></span>
+  </div>
+  <div class="countdown-pill" id="refresh-toggle" onclick="toggleRefresh()" title="Clique para pausar/retomar">
+    <span class="countdown-icon">🔄</span>
+    <span>Auto <span id="refresh-countdown">15:00</span></span>
   </div>
   <div class="snap-pill">
     <div class="snap-dot"></div>
@@ -2866,6 +2895,9 @@ async function fetchSnapTime() {
 
 async function autoLoadFromSheets() {
   const status = document.getElementById('auto-load-status');
+  // Atualiza o countdown para mostrar que está carregando
+  const countdownEl = document.getElementById('refresh-countdown');
+  if (countdownEl) countdownEl.textContent = '...';
   try {
     status.textContent = 'Conectando ao Google Sheets...';
     // Carrega Base, Controle (timestamp), Historico (snapshot anterior) e Intel em paralelo
@@ -3441,5 +3473,49 @@ dropZone.addEventListener('click', e => {
   if (e.target.tagName !== 'BUTTON') fileInput.click();
 });
 
-autoLoadFromSheets();
+/* ── AUTO-REFRESH TIMER (15 min countdown) ── */
+const AUTO_REFRESH_SECS = 15 * 60;
+let refreshEnabled  = true;
+let refreshSecsLeft = AUTO_REFRESH_SECS;
+let refreshTimerIntvl = null;
+
+function updateRefreshUI() {
+  const mins  = Math.floor(refreshSecsLeft / 60);
+  const secs  = refreshSecsLeft % 60;
+  const label = `${mins}:${String(secs).padStart(2,'0')}`;
+  const el    = document.getElementById('refresh-countdown');
+  if (el) {
+    el.textContent = label;
+    if (refreshSecsLeft <= 60)        el.style.color = 'var(--red)';
+    else if (refreshSecsLeft <= 120)  el.style.color = 'var(--warn)';
+    else                              el.style.color = 'var(--ok)';
+  }
+  const pill = document.getElementById('refresh-toggle');
+  if (pill) pill.classList.toggle('paused', !refreshEnabled);
+}
+
+function startRefreshTimer() {
+  clearInterval(refreshTimerIntvl);
+  refreshSecsLeft = AUTO_REFRESH_SECS;
+  updateRefreshUI();
+  refreshTimerIntvl = setInterval(() => {
+    if (!refreshEnabled) return;
+    refreshSecsLeft--;
+    if (refreshSecsLeft <= 0) {
+      refreshSecsLeft = AUTO_REFRESH_SECS;
+      autoLoadFromSheets();
+    }
+    updateRefreshUI();
+  }, 1000);
+}
+
+function toggleRefresh() {
+  refreshEnabled = !refreshEnabled;
+  updateRefreshUI();
+}
+
+// Inicia timer imediatamente
+startRefreshTimer();
+// Carrega dados pela primeira vez (timer reinicia após conclusão via startRefreshTimer())
+autoLoadFromSheets().then(() => startRefreshTimer());
 </script>
