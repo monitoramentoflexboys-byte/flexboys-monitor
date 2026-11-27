@@ -1041,7 +1041,7 @@ function updateKpis() {
   document.getElementById('k-agentes').textContent    = agentes.size + ' agentes';
 
   // badge no tab CEP — conta entregas em rota por CEP único
-  const cepsEmRota = new Set(rawData.filter(r => normStatus(r)==='EM ROTA').map(r => (r['Cep']||'').trim().slice(0,5)));
+  const cepsEmRota = new Set(rawData.filter(r => normStatus(r)==='EM ROTA').map(r => String(r['Cep']||'').replace(/\D/g,'').slice(0,5)));
   const badge = document.getElementById('cep-badge');
   if (cepsEmRota.size > 0) {
     badge.textContent = cepsEmRota.size;
@@ -1126,7 +1126,7 @@ function buscarAgente() {
       const pc  = statusPillClass(s);
       const dest = r['Destinatario'] || r['Destinatário'] || '—';
       const end  = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '';
-      const cep  = (r['Cep']||'—');
+      const cep  = String(r['Cep']||'—');
       const nped = getNumeroPedido(r);
       return `<div class="pedido-item ${sc}">
         <div class="pedido-row1">
@@ -1297,7 +1297,7 @@ function renderCep() {
   const sfilt    = document.getElementById('cep-status-filt').value;
 
   const filtered = rawData.filter(r => {
-    const cep = (r['Cep']||'').replace(/\D/g,'');
+    const cep = String(r['Cep']||'').replace(/\D/g,'');
     if (prefix && !cep.startsWith(prefix)) return false;
     if (sfilt  && normStatus(r) !== sfilt)  return false;
     return true;
@@ -1306,7 +1306,7 @@ function renderCep() {
   // agrupar por prefixo de 5 dígitos (CEP raiz da rua)
   const grupos = {};
   filtered.forEach(r => {
-    const cep  = (r['Cep']||'').replace(/\D/g,'');
+    const cep  = String(r['Cep']||'').replace(/\D/g,'');
     const pref = cep.slice(0,5) || 'SEM CEP';
     if (!grupos[pref]) grupos[pref] = [];
     grupos[pref].push(r);
