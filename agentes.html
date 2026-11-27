@@ -989,29 +989,10 @@ async function loadData(manual = false) {
    KPIs
    ════════════════════════════════════════════════ */
 function updateKpis() {
-  let rota=0, ok=0, aus=0, total=0;
-  const agentes = new Set();
-  rawData.forEach(r => {
-    total++;
-    const s = normStatus(r);
-    if (s==='EM ROTA')  rota++;
-    else if (s==='ENTREGUE') ok++;
-    else if (s==='AUSENTE')  aus++;
-    agentes.add((r['Agente']||'').trim());
-  });
-  document.getElementById('k-rota').textContent   = fmt(rota);
-  document.getElementById('k-ok').textContent     = fmt(ok);
-  document.getElementById('k-aus').textContent    = fmt(aus);
-  document.getElementById('k-total').textContent  = fmt(total);
-  document.getElementById('k-rota-pct').textContent   = pct(rota, total);
-  document.getElementById('k-ok-pct').textContent     = pct(ok, total);
-  document.getElementById('k-aus-pct').textContent    = pct(aus, total);
-  document.getElementById('k-agentes').textContent    = agentes.size + ' agentes';
-
-  // badge no tab CEP — conta entregas em rota por CEP único
+  // badge no tab CEP — conta CEPs únicos em rota
   const cepsEmRota = new Set(rawData.filter(r => normStatus(r)==='EM ROTA').map(r => String(r['Cep']||'').replace(/\D/g,'').slice(0,5)));
   const badge = document.getElementById('cep-badge');
-  if (cepsEmRota.size > 0) {
+  if (badge && cepsEmRota.size > 0) {
     badge.textContent = cepsEmRota.size;
     badge.style.display = 'inline-block';
   }
