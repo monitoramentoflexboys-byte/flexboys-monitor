@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>FlexBoys Agentes</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -751,36 +750,6 @@ body::before {
   </div>
 </header>
 
-<div class="kpi-strip" id="kpi-strip" style="display:none">
-  <div class="kpi-chip">
-    <div class="kpi-num" id="k-rota" style="color:var(--red)">—</div>
-    <div class="kpi-info">
-      <span class="kpi-label">Em Rota</span>
-      <span class="kpi-sub" id="k-rota-pct"></span>
-    </div>
-  </div>
-  <div class="kpi-chip">
-    <div class="kpi-num" id="k-ok" style="color:var(--ok)">—</div>
-    <div class="kpi-info">
-      <span class="kpi-label">Entregue</span>
-      <span class="kpi-sub" id="k-ok-pct"></span>
-    </div>
-  </div>
-  <div class="kpi-chip">
-    <div class="kpi-num" id="k-aus" style="color:var(--warn)">—</div>
-    <div class="kpi-info">
-      <span class="kpi-label">Ausente</span>
-      <span class="kpi-sub" id="k-aus-pct"></span>
-    </div>
-  </div>
-  <div class="kpi-chip">
-    <div class="kpi-num" id="k-total" style="color:var(--mid)">—</div>
-    <div class="kpi-info">
-      <span class="kpi-label">Total</span>
-      <span class="kpi-sub" id="k-agentes"></span>
-    </div>
-  </div>
-</div>
 
 <nav class="tab-nav" id="tab-nav" style="display:none">
   <button class="tab-btn active" onclick="switchTab('busca')">
@@ -1000,7 +969,6 @@ async function loadData(manual = false) {
 
     document.getElementById('loading-view').style.display = 'none';
     document.getElementById('busca-view').style.display   = 'block';
-    document.getElementById('kpi-strip').style.display    = 'flex';
     document.getElementById('tab-nav').style.display      = 'flex';
 
     if (activeTab === 'regioes') renderRegioes();
@@ -1363,21 +1331,30 @@ function renderCep() {
             return (o[normStatus(a)]??3) - (o[normStatus(b)]??3);
           })
           .map(r => {
-            const s   = normStatus(r);
-            const col = statusColor(s);
-            const dest = r['Destinatario']||r['Destinatário']||'—';
-            const ag   = (r['Agente']||'').trim();
+            const s      = normStatus(r);
+            const col    = statusColor(s);
+            const dest   = r['Destinatario']||r['Destinatário']||'—';
+            const ag     = (r['Agente']||'').trim();
             const agName = getAgentName(ag);
             const agCod  = getAgentCod(ag);
             const nped   = getNumeroPedido(r);
+            const remessa = r['Remessa'] || '—';
+            const serv   = normServico(r);
+            const servCol = serv==='ML' ? 'var(--warn)' : serv==='SHOPEE' ? 'var(--ok)' : 'var(--mid)';
             return `<div class="cep-pedido-row">
               <div class="cep-status-dot" style="background:${col}"></div>
               <div class="cep-pedido-info">
-                <div class="cep-pedido-num">${nped}</div>
+                <div class="cep-pedido-num" style="display:flex;align-items:center;gap:8px">
+                  <span>${nped}</span>
+                  <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:${servCol}22;color:${servCol};border:1px solid ${servCol}44">${serv}</span>
+                </div>
                 <div class="cep-pedido-dest">${dest}</div>
-                <div class="cep-pedido-agent">${agName} · <span style="font-family:var(--mono)">${agCod}</span></div>
+                <div class="cep-pedido-agent" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:3px">
+                  <span>👤 <b style="color:var(--ink)">${agName}</b> · <span style="font-family:var(--mono);color:var(--mid)">${agCod}</span></span>
+                  <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">🔖 ${remessa}</span>
+                </div>
               </div>
-              <div class="cep-pedido-status" style="color:${col}">${s}</div>
+              <div class="cep-pedido-status" style="color:${col};font-size:10px;font-weight:700;text-align:right">${s}</div>
             </div>`;
           }).join('')}
       </div>`;
@@ -1439,5 +1416,3 @@ function toggleRefresh() {
    ════════════════════════════════════════════════ */
 loadData().then(() => startRefreshTimer());
 </script>
-
-</body></html>
