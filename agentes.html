@@ -851,11 +851,49 @@ function minutesAgo(d) {
   return Math.floor((Date.now() - d.getTime()) / 60000);
 }
 
+function getAgentCod(ag) {
+  const m = (ag||'').match(/^(\d+)/);
+  return m ? m[1] : '';
+}
+function getAgentName(ag) {
+  return (ag||'').replace(/^\d+\s*[-–]\s*/,'').trim();
+}
+
+// Calcula a região primária de cada agente (a que tem mais pedidos)
+// Retorna mapa { codAgente → regiãoPrimária }
+let _agentPrimaryRegion = null;
+function buildAgentPrimaryRegion() {
+  if (_agentPrimaryRegion) return _agentPrimaryRegion;
+  const regionCount = {}; // cod → { region → count }
+  rawData.forEach(row => {
+    const ag = (row['Agente']||'').trim();
+    const cod = getAgentCod(ag);
+    if (!cod || ag === 'AGENTE PADRAO') return;
+    const reg = (row['Regiao Destino']||row['Região Destino']||'SEM REGIÃO').trim().toUpperCase();
+    if (!regionCount[cod]) regionCount[cod] = {};
+    regionCount[cod][reg] = (regionCount[cod][reg]||0) + 1;
+  });
+  _agentPrimaryRegion = {};
+  Object.keys(regionCount).forEach(cod => {
+    const counts = regionCount[cod];
+    _agentPrimaryRegion[cod] = Object.keys(counts).sort((a,b) => counts[b]-counts[a])[0];
+  });
+  return _agentPrimaryRegion;
+}
+
 function getGerente(row) {
   const ag = (row['Agente'] || '').trim();
   const cm = ag.match(/^(\d+)/);
   if (cm && AGENT_OVERRIDE[cm[1]]) return AGENT_OVERRIDE[cm[1]];
   const reg = (row['Regiao Destino'] || row['Região Destino'] || '').trim().toUpperCase();
+  return respMap[reg] || '—';
+}
+
+// Retorna o gerente do agente com base na sua região PRIMÁRIA
+function getGerentePrimario(codAgente) {
+  if (AGENT_OVERRIDE[codAgente]) return AGENT_OVERRIDE[codAgente];
+  const primaryMap = buildAgentPrimaryRegion();
+  const reg = primaryMap[codAgente] || '';
   return respMap[reg] || '—';
 }
 
@@ -904,22 +942,19 @@ function statusPillClass(s) {
   return 'pill-grey';
 }
 
-function getAgentCod(ag) {
-  const m = (ag||'').match(/^(\d+)/);
-  return m ? m[1] : '—';
-}
-
-function getAgentName(ag) {
-  const m = (ag||'').match(/^\d+\s*[-–]\s*(.+)/);
-  return m ? m[1].trim() : ag || '—';
-}
+// getAgentCod e getAgentName definidos acima
 
 function getNumeroPedido(row) {
   return (row['Nº Pedido'] || row['N° Pedido'] || row['No Pedido'] || row['Remessa'] || '—');
 }
 
 function populateGerenteFilter() {
-  const gerentes = [...new Set(rawData.map(r => getGerente(r)).filter(g => g !== '—'))].sort();
+  _agentPrimaryRegion = null;
+  const pmapPGF = buildAgentPrimaryRegion();
+  const gerentes = [...new Set(rawData.map(r => {
+    const cod = getAgentCod(r['Agente']||'');
+    return AGENT_OVERRIDE[cod] || respMap[pmapPGF[cod]||''] || getGerente(r);
+  }).filter(g => g && g !== '—'))].sort();
   const sel = document.getElementById('filt-gerente');
   if (!sel) return;
   sel.innerHTML = '<option value="">Todos os Gerentes</option>' +
@@ -962,6 +997,7 @@ async function loadData(manual = false) {
     const ws   = wb.Sheets[wb.SheetNames[0]];
     rawData    = XLSX.utils.sheet_to_json(ws, {defval:''});
     if (!rawData.length) throw new Error('Planilha vazia');
+    _agentPrimaryRegion = null; // força recálculo com dados novos
 
     lastLoadedAt = new Date();
 
@@ -1097,8 +1133,10 @@ function renderVisaoGeral() {
   const gerenteEl = document.getElementById('gerente-summary');
   if (gerenteEl) {
     const gMap = {};
+    const pmapVG = buildAgentPrimaryRegion();
     rawData.forEach(r => {
-      const g = getGerente(r);
+      const cod = getAgentCod(r['Agente']||'');
+      const g = AGENT_OVERRIDE[cod] || respMap[pmapVG[cod]||''] || getGerente(r);
       if (!gMap[g]) gMap[g] = {rota:0,ok:0,aus:0,total:0};
       const s = normStatus(r);
       gMap[g].total++;
@@ -1242,8 +1280,10 @@ function buscarAgente() {
   }
 
   const nome    = getAgentName(rows[0]['Agente']||'');
-  const gerente = getGerente(rows[0]);
-  const reg     = (rows[0]['Regiao Destino']||'').trim().toUpperCase();
+  // Usa região PRIMÁRIA do agente (a que tem mais pedidos), não a do primeiro pedido aleatório
+  const primaryMap = buildAgentPrimaryRegion();
+  const reg     = primaryMap[cod] || (rows[0]['Regiao Destino']||'').trim().toUpperCase() || '';
+  const gerente = AGENT_OVERRIDE[cod] || respMap[reg] || '—';
 
   let rota=0, ok=0, aus=0;
   rows.forEach(r => {
@@ -1360,23 +1400,34 @@ function renderRegioes() {
   const gf = document.getElementById('filt-gerente').value;
   const sf = document.getElementById('filt-status').value;
 
-  const filtered = rawData.filter(r => {
-    if (gf && getGerente(r) !== gf) return false;
-    if (sf && normStatus(r) !== sf) return false;
-    return true;
-  });
+  // Recalcula mapa de região primária quando dados mudam
+  _agentPrimaryRegion = null;
+  const primaryMap = buildAgentPrimaryRegion();
 
+  // Agrupa pedidos por REGIÃO PRIMÁRIA do agente (não pela região do pedido)
+  // Isso evita que o agente apareça em múltiplas regiões
   const regioes = {};
-  filtered.forEach(row => {
-    const reg = (row['Regiao Destino']||'SEM REGIÃO').trim().toUpperCase();
+  rawData.forEach(row => {
     const ag  = (row['Agente']||'').trim();
-    const s   = normStatus(row);
-    if (!regioes[reg]) regioes[reg] = {};
-    if (!regioes[reg][ag]) regioes[reg][ag] = {rota:0,ok:0,aus:0,outros:0};
-    if (s==='EM ROTA') regioes[reg][ag].rota++;
-    else if (s==='ENTREGUE') regioes[reg][ag].ok++;
-    else if (s==='AUSENTE')  regioes[reg][ag].aus++;
-    else regioes[reg][ag].outros++;
+    const cod = getAgentCod(ag);
+    if (!ag || ag === 'AGENTE PADRAO') return;
+
+    // Região primária do agente (onde ele trabalha de fato)
+    const primaryReg = primaryMap[cod] || (row['Regiao Destino']||'').trim().toUpperCase() || 'SEM REGIÃO';
+
+    // Filtro por gerente baseado na região primária
+    const gerente = AGENT_OVERRIDE[cod] || respMap[primaryReg] || '—';
+    if (gf && gerente !== gf) return;
+
+    const s = normStatus(row);
+    if (sf && s !== sf) return;
+
+    if (!regioes[primaryReg]) regioes[primaryReg] = {};
+    if (!regioes[primaryReg][ag]) regioes[primaryReg][ag] = {rota:0,ok:0,aus:0,outros:0};
+    if (s==='EM ROTA') regioes[primaryReg][ag].rota++;
+    else if (s==='ENTREGUE') regioes[primaryReg][ag].ok++;
+    else if (s==='AUSENTE')  regioes[primaryReg][ag].aus++;
+    else regioes[primaryReg][ag].outros++;
   });
 
   const list = document.getElementById('regioes-list');
