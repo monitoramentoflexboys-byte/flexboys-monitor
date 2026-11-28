@@ -4,7 +4,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
-   DESIGN SYSTEM — FlexBoys Field App
+   DESIGN SYSTEM — FlexBoys Field App v3
    Mobile-first, dark, high-contrast
    ═══════════════════════════════════════════ */
 :root {
@@ -72,7 +72,6 @@ body::before {
   align-items: center;
   height: 54px;
   gap: 12px;
-  /* glow sutil embaixo */
   box-shadow: 0 2px 20px rgba(232,0,45,0.18);
 }
 
@@ -101,601 +100,139 @@ body::before {
   border-radius: 50%;
   background: var(--ok);
   flex-shrink: 0;
-  animation: pulse 2.5s ease infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
-@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,217,126,0.4)} 50%{opacity:.6;box-shadow:0 0 0 4px rgba(0,217,126,0)} }
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
 .live-text {
-  font-family: var(--mono);
   font-size: 11px;
-  font-weight: 500;
   color: var(--mid);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.live-text span { color: var(--ok); }
 
 .header-refresh {
-  background: none;
-  border: 1px solid var(--line2);
-  color: var(--mid);
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: border-color 0.15s, color 0.15s;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  color: var(--mid);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-height: 36px;
+  min-width: 36px;
 }
-.header-refresh:active { border-color: var(--red); color: var(--ink); }
-.refresh-icon { font-size: 13px; }
+.header-refresh:active { opacity: 0.6; }
+.refresh-icon { font-size: 14px; }
 
 .countdown-pill {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: var(--bg3);
   border: 1px solid var(--line2);
-  border-radius: 6px;
-  padding: 5px 10px;
+  color: var(--ok);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: 7px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.15s;
-  user-select: none;
+  min-height: 36px;
+  transition: opacity 0.2s;
 }
-.countdown-pill:active { border-color: var(--red); }
-.countdown-pill.paused { opacity: 0.55; }
-.countdown-icon { font-size: 12px; animation: spin 2s linear infinite; }
-.countdown-pill.paused .countdown-icon { animation: none; }
-#refresh-countdown {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ok);
-  transition: color 0.5s;
-  min-width: 36px;
-  text-align: right;
-}
+.countdown-pill.paused { opacity: 0.45; }
+.countdown-icon { font-size: 10px; }
 
-/* ── KPI STRIP ───────────────────────────── */
-.kpi-strip {
-  background: var(--bg1);
-  border-bottom: 1px solid var(--line);
-  padding: 10px max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex;
-  gap: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.kpi-strip::-webkit-scrollbar { display: none; }
-
-.kpi-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px 6px 0;
-  flex-shrink: 0;
-  border-right: 1px solid var(--line);
-  margin-right: 16px;
-}
-.kpi-chip:last-child { border-right: none; margin-right: 0; }
-.kpi-num {
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.5px;
-}
-.kpi-info { display: flex; flex-direction: column; }
-.kpi-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-.kpi-sub { font-size: 10px; color: var(--mid); }
-
-/* ── TABS ────────────────────────────────── */
+/* ── TAB NAV ─────────────────────────────── */
 .tab-nav {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 54px);
+  z-index: 40;
   display: flex;
   background: var(--bg1);
   border-bottom: 1px solid var(--line);
-  overflow-x: auto;
-  scrollbar-width: none;
   padding: 0 max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   gap: 2px;
-  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 .tab-nav::-webkit-scrollbar { display: none; }
 
 .tab-btn {
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: var(--dim);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: 12px 14px 10px;
+  color: var(--mid);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 12px;
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.15s, border-color 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   position: relative;
 }
-.tab-btn:hover { color: var(--mid); }
-.tab-btn.active { color: var(--ink); border-bottom-color: var(--red); }
-.tab-icon { font-size: 13px; }
+.tab-btn.active {
+  color: var(--ink);
+  border-bottom-color: var(--red);
+}
+.tab-btn:active { opacity: 0.6; }
+.tab-icon { font-size: 14px; }
+
 .tab-badge {
+  position: absolute;
+  top: 6px;
+  right: 4px;
   background: var(--red);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 10px;
-  font-family: var(--mono);
+  padding: 1px 4px;
+  border-radius: 8px;
+  line-height: 1.4;
 }
 
-/* ── SCROLL CONTENT ─────────────────────── */
-.app-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-
+/* ── TAB PANES ───────────────────────────── */
 .tab-pane {
   display: none;
-  overflow-y: auto;
-  padding: 16px max(16px, env(safe-area-inset-left, 0px));
+  padding: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
-  flex: 1;
+  padding-top: 16px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
 }
 .tab-pane.active { display: block; }
 
-/* ── SEARCH BAR ─────────────────────────── */
-.search-bar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.search-input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  border-radius: 10px;
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 500;
-  padding: 12px 16px;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  min-width: 0;
-}
-.search-input:focus {
-  border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(232,0,45,0.12);
-}
-.search-input::placeholder { color: var(--dim); font-size: 15px; font-family: var(--font); font-weight: 400; }
-
-.btn-buscar {
-  background: var(--red);
-  border: none;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
-  letter-spacing: 0.3px;
-}
-.btn-buscar:active { opacity: 0.8; }
-
-.btn-clear {
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  color: var(--mid);
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: none;
-}
-
-/* ── AGENT CARD (busca) ─────────────────── */
-.agent-card {
-  background: var(--bg2);
-  border: 1px solid var(--line2);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 14px;
-}
-.agent-card-top {
-  background: var(--red-d);
-  border-bottom: 1px solid var(--red-b);
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-.agent-card-name {
-  font-family: var(--mono);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  margin-bottom: 2px;
-}
-.agent-card-meta {
-  font-size: 11px;
-  color: var(--mid);
-}
-.agent-card-meta b { color: var(--ink); }
-
-.agent-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid var(--line);
-}
-.agent-kpi {
-  padding: 12px 8px;
-  text-align: center;
-  border-right: 1px solid var(--line);
-}
-.agent-kpi:last-child { border-right: none; }
-.agent-kpi-val {
-  font-family: var(--mono);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 3px;
-}
-.agent-kpi-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-/* ── PEDIDO ITEM ────────────────────────── */
-.pedidos-wrap { padding: 12px 14px; }
-.pedidos-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--dim);
-  margin-bottom: 10px;
-}
-
-.pedido-item {
-  background: var(--bg3);
-  border-radius: 8px;
-  padding: 11px 13px;
-  margin-bottom: 7px;
-  border-left: 3px solid var(--dim);
-  position: relative;
-}
-.pedido-item.em-rota { border-left-color: var(--red); }
-.pedido-item.entregue { border-left-color: var(--ok); }
-.pedido-item.ausente { border-left-color: var(--warn); }
-
-.pedido-row1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-  gap: 8px;
-}
-.pedido-num {
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.status-pill {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-.pill-rota { background: var(--red-d); color: #FF6680; border: 1px solid var(--red-b); }
-.pill-ok   { background: var(--ok-d);  color: #4ADE80; border: 1px solid rgba(0,217,126,0.3); }
-.pill-warn { background: var(--warn-d);color: #FBBF24; border: 1px solid rgba(245,166,35,0.3); }
-.pill-grey { background: var(--bg4);   color: var(--mid); border: 1px solid var(--line); }
-
-.pedido-dest { font-size: 13px; color: var(--ink); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pedido-cep { font-family: var(--mono); font-size: 11px; color: var(--mid); }
-.pedido-alert { font-size: 10px; font-weight: 600; color: var(--warn); margin-top: 4px; }
-
-/* ── REGION LIST (tab Regiões) ───────────── */
-.filter-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-.filt {
-  flex: 1 1 140px;
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  color: var(--ink);
-  padding: 9px 10px;
-  border-radius: 8px;
-  font-family: var(--font);
-  font-size: 13px;
-  outline: none;
-  min-width: 0;
-  transition: border-color 0.15s;
-}
-.filt:focus { border-color: var(--red); }
-
-.btn-limpar {
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  color: var(--mid);
-  padding: 9px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.btn-limpar:active { border-color: var(--red); }
-
-.region-card {
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  overflow: hidden;
-  transition: border-color 0.15s;
-}
-.region-card.has-rota { border-color: rgba(232,0,45,0.3); }
-
-.region-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 14px;
-  gap: 10px;
-  cursor: pointer;
-  user-select: none;
-}
-.region-header:active { background: rgba(255,255,255,0.03); }
-
-.region-chevron {
-  color: var(--dim);
-  font-size: 11px;
-  flex-shrink: 0;
-  transition: transform 0.2s;
-}
-.region-chevron.open { transform: rotate(90deg); }
-
-.region-info { flex: 1; min-width: 0; }
-.region-name {
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-.gerente-tag {
-  display: inline-block;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: var(--red-d);
-  color: #FF6680;
-  border: 1px solid var(--red-b);
-}
-
-.region-counts {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-  align-items: center;
-}
-.rc {
+/* ── EMPTY / LOADING ─────────────────────── */
+.empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 28px;
-}
-.rc-num {
-  font-family: var(--mono);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1;
-}
-.rc-label {
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.agents-list {
-  display: none;
-  border-top: 1px solid var(--line);
-}
-.agents-list.open { display: block; }
-
-.agent-row {
-  display: flex;
-  align-items: center;
-  padding: 9px 14px 9px 36px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  gap: 10px;
-}
-.agent-row:last-child { border-bottom: none; }
-.agent-row-info { flex: 1; min-width: 0; }
-.agent-row-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.agent-row-cod { font-family: var(--mono); font-size: 10px; color: var(--mid); }
-
-.agent-row-stats { display: flex; gap: 8px; flex-shrink: 0; }
-.ars {
-  text-align: center;
-  min-width: 26px;
-}
-.ars-num {
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-}
-.ars-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); }
-
-/* ── CEP TAB ─────────────────────────────── */
-.cep-search-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.cep-search-input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  border-radius: 10px;
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 18px;
-  font-weight: 500;
-  padding: 11px 14px;
-  outline: none;
-  letter-spacing: 1px;
-  transition: border-color 0.15s;
-}
-.cep-search-input:focus { border-color: var(--red); }
-.cep-search-input::placeholder { color: var(--dim); font-size: 13px; font-family: var(--font); font-weight: 400; letter-spacing: 0; }
-
-.cep-group-card {
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-.cep-group-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-}
-.cep-group-header:active { background: rgba(255,255,255,0.03); }
-.cep-prefix {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--ink);
-}
-.cep-prefix-label { font-size: 11px; color: var(--mid); margin-top: 1px; }
-.cep-group-stats {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.cep-stat-num {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: right;
-}
-.cep-stat-label {
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--dim);
-  text-align: right;
-}
-
-.cep-pedidos-list {
-  display: none;
-  padding: 10px 14px;
-}
-.cep-pedidos-list.open { display: block; }
-
-.cep-pedido-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.cep-pedido-row:last-child { border-bottom: none; }
-.cep-status-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-.cep-pedido-info { flex: 1; min-width: 0; }
-.cep-pedido-num {
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.cep-pedido-dest { font-size: 12px; color: var(--mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cep-pedido-agent { font-size: 11px; color: var(--dim); margin-top: 1px; }
-.cep-pedido-status { font-size: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-
-/* ── EMPTY / LOADING ────────────────────── */
-.empty {
-  text-align: center;
-  padding: 48px 16px;
-  color: var(--dim);
-}
-.empty h3 {
-  font-family: var(--mono);
-  font-size: 15px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  justify-content: center;
+  min-height: 200px;
   color: var(--mid);
-  margin-bottom: 8px;
+  gap: 10px;
+  text-align: center;
+  padding: 32px 0;
 }
-
 .spinner {
   width: 36px; height: 36px;
-  border: 3px solid var(--bg4);
+  border: 3px solid var(--line2);
   border-top-color: var(--red);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -703,7 +240,7 @@ body::before {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── PROGRESS BAR de atualização ─────────── */
+/* ── PROGRESS BAR ─────────────────────── */
 .update-bar {
   height: 2px;
   background: var(--red);
@@ -716,9 +253,9 @@ body::before {
   z-index: 55;
 }
 .update-bar.active { transform: scaleX(0.6); transition: transform 3s ease-out; }
-.update-bar.done   { transform: scaleX(1);   transition: transform 0.2s; opacity: 0; transition: transform 0.2s, opacity 0.5s 0.2s; }
+.update-bar.done   { transform: scaleX(1); transition: transform 0.2s, opacity 0.5s 0.2s; opacity: 0; }
 
-/* ── NO-DATA message ────────────────────── */
+/* ── NO-DATA ────────────────────────────── */
 .no-result {
   background: var(--bg2);
   border: 1px solid var(--line2);
@@ -728,6 +265,421 @@ body::before {
   color: var(--mid);
   font-size: 13px;
 }
+
+/* ── FRESHNESS BANNER ────────────────────── */
+.freshness-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--mid);
+}
+.freshness-bar.stale  { border-color: var(--warn); background: var(--warn-d); color: var(--warn); }
+.freshness-bar.old    { border-color: var(--red);  background: var(--red-d);  color: var(--red); }
+.freshness-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+.freshness-bar.stale .freshness-dot { background: var(--warn); }
+.freshness-bar.old   .freshness-dot { background: var(--red); }
+
+/* ═══════════════════════════════════════════
+   TAB — VISÃO GERAL
+   ═══════════════════════════════════════════ */
+.overview-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 18px 0 8px;
+}
+.overview-section-title:first-child { margin-top: 0; }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 76px;
+}
+.kpi-card.full { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 14px; min-height: 56px; }
+.kpi-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; color: var(--mid); text-transform: uppercase; }
+.kpi-val   { font-size: 28px; font-weight: 700; line-height: 1.1; color: var(--ink); font-family: var(--mono); }
+.kpi-val.red  { color: var(--red); }
+.kpi-val.ok   { color: var(--ok); }
+.kpi-val.warn { color: var(--warn); }
+.kpi-sub   { font-size: 11px; color: var(--mid); margin-top: 2px; }
+.kpi-pct   { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 5px; }
+.kpi-pct.red  { color: var(--red); background: var(--red-d); }
+.kpi-pct.ok   { color: var(--ok);  background: var(--ok-d); }
+.kpi-pct.warn { color: var(--warn); background: var(--warn-d); }
+
+/* Completion bar */
+.prog-wrap { margin-bottom: 4px; }
+.prog-bar  { height: 6px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+/* Alert cards */
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-card {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-left: 3px solid var(--red);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.alert-card.warn { border-left-color: var(--warn); }
+.alert-card.ok   { border-left-color: var(--ok); border-left-width: 1px; }
+.alert-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
+.alert-body { flex: 1; min-width: 0; }
+.alert-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.alert-desc  { font-size: 11px; color: var(--mid); margin-top: 2px; line-height: 1.4; }
+.alert-desc b { color: var(--ink); }
+
+/* Gerente summary rows */
+.gerente-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.gerente-name { font-weight: 700; font-size: 13px; flex: 1; color: var(--ink); }
+.gerente-stats { display: flex; gap: 14px; }
+.gst { text-align: center; }
+.gst-val { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+.gst-label { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ═══════════════════════════════════════════
+   TAB — BUSCAR AGENTE
+   ═══════════════════════════════════════════ */
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.search-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  padding: 12px 14px;
+  min-width: 0;
+  outline: none;
+}
+.search-input::placeholder { color: var(--dim); font-size: 14px; font-weight: 400; font-family: var(--font); }
+.search-input:focus { border-color: var(--red); }
+
+.btn-buscar {
+  background: var(--red);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 52px;
+}
+.btn-buscar:active { opacity: 0.75; }
+
+.btn-clear {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  color: var(--mid);
+  font-size: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  display: none;
+  min-height: 52px;
+  min-width: 48px;
+}
+.btn-clear:active { opacity: 0.6; }
+
+/* Agent Card */
+.agent-card {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.agent-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.agent-card-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.agent-card-meta {
+  font-size: 11px;
+  color: var(--mid);
+  margin-top: 3px;
+}
+
+.agent-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.agent-kpi {
+  padding: 12px 10px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+}
+.agent-kpi:last-child { border-right: none; }
+.agent-kpi-val   { font-family: var(--mono); font-size: 20px; font-weight: 700; line-height: 1; }
+.agent-kpi-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); margin-top: 3px; }
+
+/* Map link */
+.map-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 0;
+}
+.map-link:active { opacity: 0.6; }
+
+/* Pedido items */
+.pedidos-wrap { padding: 12px 14px 14px; }
+.pedidos-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+
+.pedido-item {
+  background: var(--bg3);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 12px 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.pedido-item:last-child { margin-bottom: 0; }
+.pedido-item.rota  { border-left: 3px solid var(--red); }
+.pedido-item.ok    { border-left: 3px solid var(--ok); }
+.pedido-item.aus   { border-left: 3px solid var(--warn); }
+
+.pedido-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.pedido-num  { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); }
+.pedido-dest { font-size: 12px; color: var(--mid); }
+.pedido-cep  { font-size: 11px; color: var(--dim); margin-top: 2px; font-family: var(--mono); }
+.pedido-addr { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+/* Status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.pill-rota  { background: var(--red-d);  color: var(--red);  border: 1px solid var(--red-b); }
+.pill-ok    { background: var(--ok-d);   color: var(--ok);   border: 1px solid rgba(0,217,126,.28); }
+.pill-aus   { background: var(--warn-d); color: var(--warn); border: 1px solid rgba(245,166,35,.28); }
+.pill-grey  { background: var(--bg4);    color: var(--mid);  border: 1px solid var(--line2); }
+
+/* ═══════════════════════════════════════════
+   TAB — REGIÕES
+   ═══════════════════════════════════════════ */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.filt {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 10px 10px;
+  cursor: pointer;
+  outline: none;
+  min-height: 42px;
+}
+.btn-limpar {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  color: var(--mid);
+  font-size: 14px;
+  padding: 0 12px;
+  cursor: pointer;
+  min-height: 42px;
+  min-width: 42px;
+  flex-shrink: 0;
+}
+
+.region-card {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.region-card.has-rota { border-color: rgba(232,0,45,0.3); }
+
+.region-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  cursor: pointer;
+  min-height: 60px;
+}
+.region-header:active { opacity: 0.7; }
+
+.region-chevron {
+  color: var(--dim);
+  font-size: 11px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.region-chevron.open { transform: rotate(90deg); }
+
+.region-info { flex: 1; min-width: 0; }
+.region-name { font-weight: 700; font-size: 14px; color: var(--ink); }
+.gerente-tag { font-size: 10px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.region-counts { display: flex; gap: 10px; flex-shrink: 0; }
+.rc { text-align: center; min-width: 32px; }
+.rc-num { font-family: var(--mono); font-size: 16px; font-weight: 700; line-height: 1; }
+.rc-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); }
+
+.agents-list { display: none; border-top: 1px solid var(--line); }
+.agents-list.open { display: block; }
+
+.agent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  min-height: 54px;
+}
+.agent-row:last-child { border-bottom: none; }
+.agent-row-info { flex: 1; min-width: 0; }
+.agent-row-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.agent-row-cod  { font-size: 11px; color: var(--dim); font-family: var(--mono); margin-top: 1px; }
+.agent-row-stats { display: flex; gap: 10px; flex-shrink: 0; }
+.ars { text-align: center; min-width: 28px; }
+.ars-num { font-family: var(--mono); font-size: 14px; font-weight: 700; line-height: 1; }
+.ars-label { font-size: 9px; text-transform: uppercase; color: var(--dim); }
+
+/* ═══════════════════════════════════════════
+   TAB — POR CEP
+   ═══════════════════════════════════════════ */
+.cep-search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cep-search-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 12px;
+  outline: none;
+  min-width: 0;
+  min-height: 42px;
+}
+.cep-search-input:focus { border-color: var(--red); }
+
+.cep-group-card {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.cep-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  cursor: pointer;
+  min-height: 62px;
+}
+.cep-group-header:active { opacity: 0.7; }
+
+.cep-prefix { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink); }
+.cep-prefix-label { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+.cep-group-stats { display: flex; gap: 10px; flex-shrink: 0; }
+.cep-stat-num { font-family: var(--mono); font-size: 16px; font-weight: 700; line-height: 1; }
+.cep-stat-label { font-size: 9px; text-transform: uppercase; color: var(--dim); text-align: center; }
+
+.cep-pedidos-list { display: none; border-top: 1px solid var(--line); }
+.cep-pedidos-list.open { display: block; }
+
+.cep-pedido-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.cep-pedido-row:last-child { border-bottom: none; }
+
+.cep-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.cep-pedido-info { flex: 1; min-width: 0; }
+.cep-pedido-num  { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink); }
+.cep-pedido-dest { font-size: 12px; color: var(--mid); margin-top: 2px; }
+.cep-pedido-agent { font-size: 10px; color: var(--dim); margin-top: 4px; }
+.cep-pedido-status { font-size: 10px; font-weight: 700; text-align: right; flex-shrink: 0; margin-top: 3px; }
 </style>
 
 <!-- MARKUP -->
@@ -744,32 +696,49 @@ body::before {
     <span class="refresh-icon">⟳</span>
     <span id="refresh-label">Atualizar</span>
   </button>
-  <div class="countdown-pill" id="refresh-toggle" onclick="toggleRefresh()" title="Clique para pausar/retomar">
+  <div class="countdown-pill" id="refresh-toggle" onclick="toggleRefresh()" title="Pausar/retomar atualização">
     <span class="countdown-icon">🔄</span>
     <span id="refresh-countdown">15:00</span>
   </div>
 </header>
 
-
 <nav class="tab-nav" id="tab-nav" style="display:none">
-  <button class="tab-btn active" onclick="switchTab('busca')">
-    <span class="tab-icon">🔍</span> Buscar Agente
+  <button class="tab-btn active" onclick="switchTab('visao')">
+    <span class="tab-icon">📊</span> Visão Geral
+  </button>
+  <button class="tab-btn" onclick="switchTab('busca')">
+    <span class="tab-icon">🔍</span> Agente
   </button>
   <button class="tab-btn" onclick="switchTab('regioes')">
     <span class="tab-icon">📍</span> Regiões
   </button>
   <button class="tab-btn" onclick="switchTab('cep')">
-    <span class="tab-icon">📮</span> Por CEP
+    <span class="tab-icon">📮</span> CEP
     <span class="tab-badge" id="cep-badge" style="display:none"></span>
   </button>
 </nav>
 
-<!-- TAB: BUSCAR AGENTE -->
-<div class="tab-pane active" id="pane-busca">
+<!-- TAB: VISÃO GERAL -->
+<div class="tab-pane active" id="pane-visao">
   <div class="empty" id="loading-view">
     <div class="spinner"></div>
     <div>Conectando ao Google Sheets...</div>
   </div>
+  <div id="visao-view" style="display:none">
+    <div id="freshness-banner"></div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="prog-wrap" id="prog-wrap"></div>
+    <p class="overview-section-title">Por Gerente</p>
+    <div id="gerente-summary"></div>
+    <p class="overview-section-title">Alertas da Operação</p>
+    <div class="alert-list" id="alert-list">
+      <div class="no-result">Carregando alertas...</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: BUSCAR AGENTE -->
+<div class="tab-pane" id="pane-busca">
   <div id="busca-view" style="display:none">
     <div class="search-bar">
       <input class="search-input" id="search-input" type="number" inputmode="numeric"
@@ -805,7 +774,7 @@ body::before {
 <div class="tab-pane" id="pane-cep">
   <div class="cep-search-row">
     <input class="cep-search-input" id="cep-filter" type="text" inputmode="numeric"
-      placeholder="Filtrar por prefixo de CEP…"
+      placeholder="Filtrar por CEP…"
       oninput="renderCep()">
     <select class="filt" id="cep-status-filt" onchange="renderCep()" style="flex:0 0 auto;min-width:130px">
       <option value="">Todos</option>
@@ -820,7 +789,7 @@ body::before {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* ════════════════════════════════════════════════
-   DADOS / CONFIGURAÇÃO
+   CONFIG
    ════════════════════════════════════════════════ */
 const SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcxVKmt__Dq3kYrCvQHBu8gS18z14sb5PeLyG-dPSprKWMnj0E9xW5kn5Y1Eni06-y0gnMdiJbVoQI/pub?gid=0&single=true&output=csv";
 
@@ -847,11 +816,12 @@ const AGENT_OVERRIDE = { '883':'RODRIGO','1626':'RODRIGO','1035':'RODRIGO' };
 /* ════════════════════════════════════════════════
    ESTADO
    ════════════════════════════════════════════════ */
-let rawData    = [];
-let activeTab  = 'busca';
-let openRegSet = new Set();
-let openCepSet = new Set();
-let recentSearches = [];
+let rawData         = [];
+let activeTab       = 'visao';
+let openRegSet      = new Set();
+let openCepSet      = new Set();
+let recentSearches  = [];
+let lastLoadedAt    = null; // Date object quando os dados foram carregados
 
 /* ════════════════════════════════════════════════
    HELPERS
@@ -869,6 +839,16 @@ function latestDate(data) {
     if (t && (!d || t > d)) d = t;
   });
   return d;
+}
+
+function fmtTime(d) {
+  if (!d) return '—';
+  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function minutesAgo(d) {
+  if (!d) return 999;
+  return Math.floor((Date.now() - d.getTime()) / 60000);
 }
 
 function getGerente(row) {
@@ -897,9 +877,9 @@ function normStatus(row) {
     if (hist === 'AUSENTE')  return 'AUSENTE';
     return hist || 'OUTROS';
   }
-  if (hist === 'EM ROTA DE ENTREGA') return 'EM ROTA';
-  if (hist === 'ENTREGUE')  return 'ENTREGUE';
-  if (hist === 'AUSENTE')   return 'AUSENTE';
+  if (ecom.startsWith('SAIU PARA ENTREGA') || ecom.startsWith('EM ROTA') || hist === 'EM ROTA') return 'EM ROTA';
+  if (hist === 'ENTREGUE') return 'ENTREGUE';
+  if (hist === 'AUSENTE')  return 'AUSENTE';
   return hist || 'OUTROS';
 }
 
@@ -907,41 +887,65 @@ function statusColor(s) {
   if (s === 'EM ROTA')  return 'var(--red)';
   if (s === 'ENTREGUE') return 'var(--ok)';
   if (s === 'AUSENTE')  return 'var(--warn)';
-  return 'var(--dim)';
+  return 'var(--mid)';
 }
-function statusPillClass(s) {
-  if (s === 'EM ROTA')  return 'pill-rota';
-  if (s === 'ENTREGUE') return 'pill-ok';
-  if (s === 'AUSENTE')  return 'pill-warn';
-  return 'pill-grey';
-}
+
 function pedidoClass(s) {
-  if (s === 'EM ROTA')  return 'em-rota';
-  if (s === 'ENTREGUE') return 'entregue';
-  if (s === 'AUSENTE')  return 'ausente';
+  if (s === 'EM ROTA')  return 'rota';
+  if (s === 'ENTREGUE') return 'ok';
+  if (s === 'AUSENTE')  return 'aus';
   return '';
 }
 
-function getAgentCod(agStr) {
-  const m = (agStr||'').match(/^(\d+)/);
-  return m ? m[1] : '';
+function statusPillClass(s) {
+  if (s === 'EM ROTA')  return 'pill-rota';
+  if (s === 'ENTREGUE') return 'pill-ok';
+  if (s === 'AUSENTE')  return 'pill-aus';
+  return 'pill-grey';
 }
-function getAgentName(agStr) {
-  return (agStr||'').replace(/^\d+\s*[-–]\s*/, '').trim();
+
+function getAgentCod(ag) {
+  const m = (ag||'').match(/^(\d+)/);
+  return m ? m[1] : '—';
+}
+
+function getAgentName(ag) {
+  const m = (ag||'').match(/^\d+\s*[-–]\s*(.+)/);
+  return m ? m[1].trim() : ag || '—';
 }
 
 function getNumeroPedido(row) {
-  for (const k of Object.keys(row)) {
-    if (k.toLowerCase().includes('pedido')) return row[k] || '—';
-  }
-  return '—';
+  return (row['Nº Pedido'] || row['N° Pedido'] || row['No Pedido'] || row['Remessa'] || '—');
 }
 
-function fmt(n) { return (n||0).toLocaleString('pt-BR'); }
-function pct(n, total) { return total ? Math.round(n/total*100)+'%' : '0%'; }
+function populateGerenteFilter() {
+  const gerentes = [...new Set(rawData.map(r => getGerente(r)).filter(g => g !== '—'))].sort();
+  const sel = document.getElementById('filt-gerente');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Todos os Gerentes</option>' +
+    gerentes.map(g => `<option value="${g}">${g}</option>`).join('');
+}
 
 /* ════════════════════════════════════════════════
-   CARGA DE DADOS
+   TAB NAVIGATION
+   ════════════════════════════════════════════════ */
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const tabs = ['visao','busca','regioes','cep'];
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const paneMap = { visao:'pane-visao', busca:'pane-busca', regioes:'pane-regioes', cep:'pane-cep' };
+  const pane = document.getElementById(paneMap[tab]);
+  if (pane) pane.classList.add('active');
+  if (tab === 'regioes' && rawData.length) renderRegioes();
+  if (tab === 'cep'     && rawData.length) renderCep();
+  if (tab === 'visao'   && rawData.length) renderVisaoGeral();
+}
+
+/* ════════════════════════════════════════════════
+   LOAD DATA
    ════════════════════════════════════════════════ */
 async function loadData(manual = false) {
   if (manual) startRefreshTimer();
@@ -952,33 +956,42 @@ async function loadData(manual = false) {
 
   try {
     const resp = await fetch(SHEETS_URL + '&_=' + Date.now());
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    if (!resp.ok) throw new Error('Sem resposta do servidor');
     const csv  = await resp.text();
     const wb   = XLSX.read(csv, {type:'string'});
     const ws   = wb.Sheets[wb.SheetNames[0]];
     rawData    = XLSX.utils.sheet_to_json(ws, {defval:''});
-    if (!rawData.length) throw new Error('Vazio');
+    if (!rawData.length) throw new Error('Planilha vazia');
+
+    lastLoadedAt = new Date();
 
     const ts = latestDate(rawData);
-    document.getElementById('snap-ts').textContent = ts
-      ? ts.toLocaleDateString('pt-BR') + ' ' + ts.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-      : '—';
+    document.getElementById('snap-ts').textContent = ts ? fmtTime(ts) : '—';
 
     updateKpis();
     populateGerenteFilter();
 
+    // Revelar interface
     document.getElementById('loading-view').style.display = 'none';
+    document.getElementById('visao-view').style.display   = 'block';
     document.getElementById('busca-view').style.display   = 'block';
     document.getElementById('tab-nav').style.display      = 'flex';
 
+    if (activeTab === 'visao')   renderVisaoGeral();
     if (activeTab === 'regioes') renderRegioes();
     if (activeTab === 'cep')     renderCep();
 
     bar.className = 'update-bar done';
     setTimeout(() => { bar.className = 'update-bar'; }, 800);
   } catch(e) {
+    console.warn('[FlexBoys] Falha ao carregar dados:', e);
     document.getElementById('loading-view').innerHTML =
-      `<div class="empty"><h3>Falha na conexão</h3><div style="font-size:13px;margin-bottom:16px">${e.message}</div><button class="btn-buscar" onclick="loadData(true)" style="margin:0 auto">Tentar Novamente</button></div>`;
+      `<div class="empty">
+        <div style="font-size:36px;margin-bottom:8px">📡</div>
+        <h3 style="color:var(--ink)">Sem conexão</h3>
+        <div style="font-size:13px;margin-bottom:20px;color:var(--mid)">Verifique sua internet e tente novamente.</div>
+        <button onclick="loadData(true)" style="background:var(--red);border:none;border-radius:10px;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;padding:12px 24px;cursor:pointer">Tentar novamente</button>
+      </div>`;
     bar.className = 'update-bar';
   } finally {
     if (btn) { btn.disabled = false; document.getElementById('refresh-label').textContent = 'Atualizar'; }
@@ -986,41 +999,216 @@ async function loadData(manual = false) {
 }
 
 /* ════════════════════════════════════════════════
-   KPIs
+   UPDATE KPIS (badge CEP apenas)
    ════════════════════════════════════════════════ */
 function updateKpis() {
-  // badge no tab CEP — conta CEPs únicos em rota
-  const cepsEmRota = new Set(rawData.filter(r => normStatus(r)==='EM ROTA').map(r => String(r['Cep']||'').replace(/\D/g,'').slice(0,5)));
+  const cepsEmRota = new Set(rawData.filter(r => normStatus(r)==='EM ROTA').map(r => String(r['Cep']||'').replace(/\D/g,'').padStart(8,'0').slice(0,5)));
   const badge = document.getElementById('cep-badge');
   if (badge && cepsEmRota.size > 0) {
     badge.textContent = cepsEmRota.size;
     badge.style.display = 'inline-block';
+  } else if (badge) {
+    badge.style.display = 'none';
   }
 }
 
-function populateGerenteFilter() {
-  const sel = document.getElementById('filt-gerente');
-  const gerentes = [...new Set(D_RESP.map(d => d.g))].sort();
-  sel.innerHTML = '<option value="">Todos os Gerentes</option>';
-  gerentes.forEach(g => sel.innerHTML += `<option value="${g}">${g}</option>`);
-}
-
 /* ════════════════════════════════════════════════
-   TABS
+   VISÃO GERAL — render completo
    ════════════════════════════════════════════════ */
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  const idx = ['busca','regioes','cep'].indexOf(tab);
-  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-  document.getElementById('pane-' + tab).classList.add('active');
-  if (tab === 'regioes' && rawData.length) renderRegioes();
-  if (tab === 'cep'     && rawData.length) renderCep();
+function renderVisaoGeral() {
+  if (!rawData.length) return;
+
+  // ── Freshness ──────────────────────────────────
+  const dataTs = latestDate(rawData);
+  const banner = document.getElementById('freshness-banner');
+  if (banner && dataTs) {
+    const mins = minutesAgo(dataTs);
+    let cls = '', icon = '🟢', msg = '';
+    if (mins < 30) {
+      cls = ''; icon = '🟢'; msg = `Dados atualizados há ${mins} min (${fmtTime(dataTs)})`;
+    } else if (mins < 60) {
+      cls = 'stale'; icon = '🟡'; msg = `Dados de ${mins} min atrás — pode haver atraso`;
+    } else {
+      cls = 'old'; icon = '🔴'; msg = `Dados de ${Math.floor(mins/60)}h${String(mins%60).padStart(2,'0')} atrás — atualize`;
+    }
+    banner.innerHTML = `<div class="freshness-bar ${cls}"><div class="freshness-dot"></div><span>${icon} ${msg}</span></div>`;
+  }
+
+  // ── Totais ─────────────────────────────────────
+  let total=0, rota=0, ok=0, aus=0, outros=0;
+  const agSet = new Set();
+  rawData.forEach(r => {
+    total++;
+    const s = normStatus(r);
+    if (s==='EM ROTA')  rota++;
+    else if (s==='ENTREGUE') ok++;
+    else if (s==='AUSENTE')  aus++;
+    else outros++;
+    const cod = getAgentCod(r['Agente']||'');
+    if (cod !== '—') agSet.add(cod);
+  });
+
+  const pctOk   = total ? Math.round(ok/total*100)   : 0;
+  const pctRota = total ? Math.round(rota/total*100)  : 0;
+  const pctAus  = total ? Math.round(aus/total*100)   : 0;
+
+  // ── KPI Grid ───────────────────────────────────
+  const grid = document.getElementById('kpi-grid');
+  if (grid) {
+    grid.innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-label">Total Pedidos</div>
+        <div class="kpi-val">${total}</div>
+        <div class="kpi-sub">${agSet.size} agentes ativos</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Entregues</div>
+        <div class="kpi-val ok">${ok}</div>
+        <div class="kpi-sub"><span class="kpi-pct ok">${pctOk}%</span> do total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Em Rota</div>
+        <div class="kpi-val red">${rota}</div>
+        <div class="kpi-sub"><span class="kpi-pct red">${pctRota}%</span> do total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ausências</div>
+        <div class="kpi-val warn">${aus}</div>
+        <div class="kpi-sub"><span class="kpi-pct warn">${pctAus}%</span> do total</div>
+      </div>`;
+  }
+
+  // ── Barra de progresso ─────────────────────────
+  const pw = document.getElementById('prog-wrap');
+  if (pw) {
+    pw.innerHTML = `
+      <div class="kpi-card full" style="margin-bottom:0">
+        <div style="flex:1;min-width:0">
+          <div class="kpi-label">Conclusão da Operação</div>
+          <div class="prog-bar">
+            <div class="prog-fill" style="width:${pctOk}%;background:var(--ok)"></div>
+          </div>
+        </div>
+        <div class="kpi-val ok" style="font-size:22px">${pctOk}%</div>
+      </div>`;
+  }
+
+  // ── Por Gerente ────────────────────────────────
+  const gerenteEl = document.getElementById('gerente-summary');
+  if (gerenteEl) {
+    const gMap = {};
+    rawData.forEach(r => {
+      const g = getGerente(r);
+      if (!gMap[g]) gMap[g] = {rota:0,ok:0,aus:0,total:0};
+      const s = normStatus(r);
+      gMap[g].total++;
+      if (s==='EM ROTA') gMap[g].rota++;
+      else if (s==='ENTREGUE') gMap[g].ok++;
+      else if (s==='AUSENTE')  gMap[g].aus++;
+    });
+
+    gerenteEl.innerHTML = Object.entries(gMap)
+      .filter(([g]) => g !== '—')
+      .sort((a,b) => b[1].rota - a[1].rota)
+      .map(([g, s]) => {
+        const pct = s.total ? Math.round(s.ok/s.total*100) : 0;
+        return `<div class="gerente-row">
+          <div class="gerente-name">${g}</div>
+          <div class="gerente-stats">
+            <div class="gst"><div class="gst-val" style="color:var(--ok)">${pct}%</div><div class="gst-label">OK</div></div>
+            <div class="gst"><div class="gst-val" style="color:var(--red)">${s.rota}</div><div class="gst-label">Rota</div></div>
+            <div class="gst"><div class="gst-val" style="color:var(--warn)">${s.aus}</div><div class="gst-label">Aus.</div></div>
+          </div>
+        </div>`;
+      }).join('') || '<div class="no-result">Sem dados de gerente</div>';
+  }
+
+  // ── Alertas ────────────────────────────────────
+  const alertEl = document.getElementById('alert-list');
+  if (!alertEl) return;
+
+  const alertas = [];
+
+  // 1. Agentes sobrecarregados (≥5 pedidos em rota)
+  const agRotaMap = {};
+  rawData.forEach(r => {
+    if (normStatus(r) !== 'EM ROTA') return;
+    const cod  = getAgentCod(r['Agente']||'');
+    const nome = getAgentName(r['Agente']||'');
+    if (!agRotaMap[cod]) agRotaMap[cod] = {nome, count:0};
+    agRotaMap[cod].count++;
+  });
+  const sobrecarregados = Object.values(agRotaMap).filter(a => a.count >= 5).sort((a,b) => b.count - a.count);
+  if (sobrecarregados.length) {
+    const nomes = sobrecarregados.slice(0,3).map(a => `<b>${a.nome.split(' ')[0]}</b> (${a.count})`).join(', ');
+    alertas.push({
+      icon:'🔴', cls:'',
+      title:`${sobrecarregados.length} agente${sobrecarregados.length>1?'s':''} sobrecarregado${sobrecarregados.length>1?'s':''}`,
+      desc:`${nomes}${sobrecarregados.length > 3 ? ` e mais ${sobrecarregados.length-3}` : ''} com 5+ pedidos em rota`
+    });
+  }
+
+  // 2. Alta taxa de ausências por região
+  const regAus = {};
+  rawData.forEach(r => {
+    const reg = (r['Regiao Destino']||'').trim().toUpperCase();
+    if (!reg) return;
+    if (!regAus[reg]) regAus[reg] = {aus:0,total:0};
+    regAus[reg].total++;
+    if (normStatus(r)==='AUSENTE') regAus[reg].aus++;
+  });
+  const regProblemas = Object.entries(regAus)
+    .filter(([,v]) => v.total >= 5 && v.aus/v.total >= 0.3)
+    .sort((a,b) => b[1].aus/b[1].total - a[1].aus/a[1].total);
+  if (regProblemas.length) {
+    const r = regProblemas[0];
+    const pct = Math.round(r[1].aus/r[1].total*100);
+    alertas.push({
+      icon:'⚠️', cls:'warn',
+      title:`Alta ausência em ${r[0].replace(/_/g,' ')}`,
+      desc:`<b>${pct}%</b> de ausências (${r[1].aus} de ${r[1].total} pedidos)${regProblemas.length>1 ? ` · mais ${regProblemas.length-1} região${regProblemas.length>2?'ões':''}` : ''}`
+    });
+  }
+
+  // 3. Dados potencialmente desatualizados (> 90 min)
+  if (dataTs && minutesAgo(dataTs) > 90) {
+    const mins = minutesAgo(dataTs);
+    alertas.push({
+      icon:'📡', cls:'warn',
+      title:'Dados com possível atraso',
+      desc:`Último evento registrado há <b>${Math.floor(mins/60)}h${String(mins%60).padStart(2,'0')}</b>. Atualize ou verifique a planilha.`
+    });
+  }
+
+  // 4. Muitos pedidos acumulados em rota
+  if (rota > 50) {
+    alertas.push({
+      icon:'📦', cls:'warn',
+      title:`${rota} pedidos ainda em rota`,
+      desc:`<b>${pctRota}%</b> do total aguarda conclusão.`
+    });
+  }
+
+  if (!alertas.length) {
+    alertas.push({
+      icon:'✅', cls:'ok',
+      title:'Operação sem alertas críticos',
+      desc:'Nenhuma irregularidade identificada nos dados atuais.'
+    });
+  }
+
+  alertEl.innerHTML = alertas.map(a => `
+    <div class="alert-card ${a.cls}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div>
+      </div>
+    </div>`).join('');
 }
 
 /* ════════════════════════════════════════════════
-   TAB — BUSCAR AGENTE
+   BUSCAR AGENTE
    ════════════════════════════════════════════════ */
 function onSearchInput() {
   const v = document.getElementById('search-input').value;
@@ -1034,18 +1222,19 @@ function clearSearch() {
 }
 
 function buscarAgente() {
-  const cod = (document.getElementById('search-input').value||'').trim();
-  if (!cod) return;
+  const cod       = (document.getElementById('search-input').value||'').trim();
+  const container = document.getElementById('search-result');
+  if (!cod) { container.innerHTML = ''; return; }
+  if (!rawData.length) { container.innerHTML = '<div class="no-result">Dados ainda carregando…</div>'; return; }
 
   const rows = rawData.filter(r => getAgentCod(r['Agente']||'') === cod);
-  const container = document.getElementById('search-result');
 
   if (!rows.length) {
-    container.innerHTML = `<div class="no-result">Nenhum agente encontrado com código <b>${cod}</b></div>`;
+    container.innerHTML = '<div class="no-result">Agente não encontrado</div>';
     return;
   }
 
-  // salva buscas recentes
+  // Recentes
   if (!recentSearches.includes(cod)) {
     recentSearches.unshift(cod);
     if (recentSearches.length > 5) recentSearches.pop();
@@ -1064,27 +1253,52 @@ function buscarAgente() {
     else if (s==='AUSENTE') aus++;
   });
 
+  // Status label mais preciso
+  let statusLabel, statusCls;
+  if (rota > 0) { statusLabel = rota+' em rota'; statusCls = 'pill-rota'; }
+  else if (aus > 0) { statusLabel = aus+' ausência'+(aus>1?'s':''); statusCls = 'pill-aus'; }
+  else { statusLabel = 'Sem pendências'; statusCls = 'pill-grey'; }
+
   const pedidosHTML = rows
     .sort((a,b) => {
       const o = {'EM ROTA':0,'AUSENTE':1,'ENTREGUE':2};
       return (o[normStatus(a)]??3) - (o[normStatus(b)]??3);
     })
     .map(r => {
-      const s   = normStatus(r);
-      const sc  = pedidoClass(s);
-      const pc  = statusPillClass(s);
-      const dest = r['Destinatario'] || r['Destinatário'] || '—';
+      const s    = normStatus(r);
+      const sc   = pedidoClass(s);
+      const pc   = statusPillClass(s);
+      const dest = r['Destinatario'] || r['Destinatário'] || '';
       const end  = r['Endereco de Entrega'] || r['Endereço de Entrega'] || '';
-      const cep  = String(r['Cep']||'—');
+      const cepNum = String(r['Cep']||'').replace(/\D/g,'').padStart(8,'0');
+      const cep  = cepNum !== '00000000' ? cepNum.replace(/(\d{5})(\d{3})/,'$1-$2') : '—';
       const nped = getNumeroPedido(r);
+      const serv = normServico(r);
+      const servCol = serv==='ML' ? 'var(--warn)' : serv==='SHOPEE' ? 'var(--ok)' : 'var(--mid)';
+
+      // Link para mapa apenas se endereço disponível
+      const mapQuery = end ? encodeURIComponent(end + (cep !== '—' ? ' ' + cep : '')) : null;
+      const mapLink  = mapQuery
+        ? `<a href="https://maps.google.com/maps?q=${mapQuery}" target="_blank" rel="noopener" class="map-link">🗺 Ver no mapa</a>`
+        : '';
+
+      // Destinatário: mostra apenas no contexto do pedido (não em lista pública)
+      const destEl = dest
+        ? `<div class="pedido-dest">${dest}</div>`
+        : '';
+
       return `<div class="pedido-item ${sc}">
         <div class="pedido-row1">
-          <div class="pedido-num">${nped}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="pedido-num">${nped}</div>
+            <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:${servCol}22;color:${servCol};border:1px solid ${servCol}44">${serv}</span>
+          </div>
           <div class="status-pill ${pc}">${s}</div>
         </div>
-        <div class="pedido-dest">${dest}</div>
-        ${end ? `<div class="pedido-cep" style="color:var(--mid);font-size:11px;margin-top:1px">${end}</div>` : ''}
+        ${destEl}
+        ${end ? `<div class="pedido-addr">📍 ${end}</div>` : ''}
         <div class="pedido-cep">📮 ${cep}</div>
+        ${mapLink}
       </div>`;
     }).join('');
 
@@ -1093,9 +1307,9 @@ function buscarAgente() {
       <div class="agent-card-top">
         <div>
           <div class="agent-card-name">${nome || 'Agente ' + cod}</div>
-          <div class="agent-card-meta">Cód <b>${cod}</b> · ${reg} · <b>${gerente}</b></div>
+          <div class="agent-card-meta">Cód <b>${cod}</b> · ${reg.replace(/_/g,' ')} · <b>${gerente}</b></div>
         </div>
-        <div class="status-pill ${rota > 0 ? 'pill-rota' : 'pill-grey'}" style="font-size:10px">${rota > 0 ? rota+' em rota' : 'finalizado'}</div>
+        <div class="status-pill ${statusCls}" style="font-size:10px">${statusLabel}</div>
       </div>
       <div class="agent-kpi-row">
         <div class="agent-kpi">
@@ -1129,7 +1343,7 @@ function renderRecentSearches() {
   document.getElementById('last-searches').innerHTML = `
     <div style="font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Buscas recentes</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      ${recentSearches.map(c => `<button onclick="document.getElementById('search-input').value='${c}';buscarAgente()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--mid);padding:6px 14px;border-radius:6px;font-family:var(--mono);font-size:14px;cursor:pointer">${c}</button>`).join('')}
+      ${recentSearches.map(c => `<button onclick="document.getElementById('search-input').value='${c}';onSearchInput();buscarAgente()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--mid);padding:8px 16px;border-radius:8px;font-family:var(--mono);font-size:14px;cursor:pointer;min-height:40px">${c}</button>`).join('')}
     </div>`;
 }
 
@@ -1152,7 +1366,6 @@ function renderRegioes() {
     return true;
   });
 
-  // agrupar: região → agente → contagens
   const regioes = {};
   filtered.forEach(row => {
     const reg = (row['Regiao Destino']||'SEM REGIÃO').trim().toUpperCase();
@@ -1162,7 +1375,7 @@ function renderRegioes() {
     if (!regioes[reg][ag]) regioes[reg][ag] = {rota:0,ok:0,aus:0,outros:0};
     if (s==='EM ROTA') regioes[reg][ag].rota++;
     else if (s==='ENTREGUE') regioes[reg][ag].ok++;
-    else if (s==='AUSENTE') regioes[reg][ag].aus++;
+    else if (s==='AUSENTE')  regioes[reg][ag].aus++;
     else regioes[reg][ag].outros++;
   });
 
@@ -1174,7 +1387,6 @@ function renderRegioes() {
 
   list.innerHTML = '';
 
-  // ordenar regiões: com em-rota primeiro
   const sortedRegs = Object.keys(regioes).sort((a,b) => {
     const ra = Object.values(regioes[a]).reduce((s,v)=>s+v.rota,0);
     const rb = Object.values(regioes[b]).reduce((s,v)=>s+v.rota,0);
@@ -1242,20 +1454,26 @@ function toggleReg(reg) {
    TAB — POR CEP
    ════════════════════════════════════════════════ */
 function renderCep() {
-  const prefix   = (document.getElementById('cep-filter').value||'').replace(/\D/g,'');
-  const sfilt    = document.getElementById('cep-status-filt').value;
+  const prefix = (document.getElementById('cep-filter').value||'').replace(/\D/g,'');
+  const sfilt  = document.getElementById('cep-status-filt').value;
+
+  // padStart(8,'0') restaura o zero à esquerda perdido pelo XLSX.js
+  // ex: XLSX converte 04035-001 → número 4035001 → String → "4035001" (7 dígitos)
+  // padStart(8) → "04035001" → prefixo correto "04035"
+  function normCep(raw) {
+    return String(raw||'').replace(/\D/g,'').padStart(8,'0');
+  }
 
   const filtered = rawData.filter(r => {
-    const cep = String(r['Cep']||'').replace(/\D/g,'');
+    const cep = normCep(r['Cep']);
     if (prefix && !cep.startsWith(prefix)) return false;
     if (sfilt  && normStatus(r) !== sfilt)  return false;
     return true;
   });
 
-  // agrupar por prefixo de 5 dígitos (CEP raiz da rua)
   const grupos = {};
   filtered.forEach(r => {
-    const cep  = String(r['Cep']||'').replace(/\D/g,'');
+    const cep  = normCep(r['Cep']);
     const pref = cep.slice(0,5) || 'SEM CEP';
     if (!grupos[pref]) grupos[pref] = [];
     grupos[pref].push(r);
@@ -1267,7 +1485,6 @@ function renderCep() {
     return;
   }
 
-  // ordenar: mais pedidos em rota primeiro, depois por prefixo
   const sorted = Object.keys(grupos).sort((a,b) => {
     const ra = grupos[a].filter(r => normStatus(r)==='EM ROTA').length;
     const rb = grupos[b].filter(r => normStatus(r)==='EM ROTA').length;
@@ -1282,7 +1499,6 @@ function renderCep() {
     const aus   = rows.filter(r => normStatus(r)==='AUSENTE').length;
     const isOpen = openCepSet.has(pref);
 
-    // bairro/região de referência (pega o mais frequente)
     const bairros = {};
     rows.forEach(r => {
       const b = (r['Bairro']||'').trim();
@@ -1312,25 +1528,25 @@ function renderCep() {
             return (o[normStatus(a)]??3) - (o[normStatus(b)]??3);
           })
           .map(r => {
-            const s      = normStatus(r);
-            const col    = statusColor(s);
-            const dest   = r['Destinatario']||r['Destinatário']||'—';
-            const ag     = (r['Agente']||'').trim();
-            const agName = getAgentName(ag);
-            const agCod  = getAgentCod(ag);
-            const nped   = getNumeroPedido(r);
+            const s       = normStatus(r);
+            const col     = statusColor(s);
+            const dest    = r['Destinatario']||r['Destinatário']||'—';
+            const ag      = (r['Agente']||'').trim();
+            const agName  = getAgentName(ag);
+            const agCod   = getAgentCod(ag);
+            const nped    = getNumeroPedido(r);
             const remessa = r['Remessa'] || '—';
-            const serv   = normServico(r);
+            const serv    = normServico(r);
             const servCol = serv==='ML' ? 'var(--warn)' : serv==='SHOPEE' ? 'var(--ok)' : 'var(--mid)';
             return `<div class="cep-pedido-row">
               <div class="cep-status-dot" style="background:${col}"></div>
               <div class="cep-pedido-info">
                 <div class="cep-pedido-num" style="display:flex;align-items:center;gap:8px">
                   <span>${nped}</span>
-                  <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:${servCol}22;color:${servCol};border:1px solid ${servCol}44">${serv}</span>
+                  <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:${servCol}22;color:${servCol};border:1px solid ${servCol}44">${serv}</span>
                 </div>
                 <div class="cep-pedido-dest">${dest}</div>
-                <div class="cep-pedido-agent" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:3px">
+                <div class="cep-pedido-agent" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
                   <span>👤 <b style="color:var(--ink)">${agName}</b> · <span style="font-family:var(--mono);color:var(--mid)">${agCod}</span></span>
                   <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">🔖 ${remessa}</span>
                 </div>
@@ -1353,8 +1569,8 @@ function toggleCep(pref) {
    COUNTDOWN DE ATUALIZAÇÃO
    ════════════════════════════════════════════════ */
 const AUTO_REFRESH_SECS = 15 * 60;
-let refreshEnabled  = true;
-let refreshSecsLeft = AUTO_REFRESH_SECS;
+let refreshEnabled    = true;
+let refreshSecsLeft   = AUTO_REFRESH_SECS;
 let refreshTimerIntvl = null;
 
 function updateRefreshUI() {
